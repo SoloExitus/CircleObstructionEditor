@@ -43,6 +43,8 @@ namespace CircleEditor
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.rb_set_start = new System.Windows.Forms.RadioButton();
+            this.rb_set_end = new System.Windows.Forms.RadioButton();
             this.groupBox1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -65,7 +67,7 @@ namespace CircleEditor
             this.groupBox1.Controls.Add(this.groupBox2);
             this.groupBox1.Location = new System.Drawing.Point(624, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(164, 190);
+            this.groupBox1.Size = new System.Drawing.Size(164, 210);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Control";
@@ -75,7 +77,7 @@ namespace CircleEditor
             this.groupBox3.Controls.Add(this.button3);
             this.groupBox3.Controls.Add(this.button2);
             this.groupBox3.Controls.Add(this.newbutton);
-            this.groupBox3.Location = new System.Drawing.Point(11, 94);
+            this.groupBox3.Location = new System.Drawing.Point(11, 117);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(147, 79);
             this.groupBox3.TabIndex = 2;
@@ -104,13 +106,15 @@ namespace CircleEditor
             // 
             // groupBox2
             // 
+            this.groupBox2.Controls.Add(this.rb_set_end);
+            this.groupBox2.Controls.Add(this.rb_set_start);
             this.groupBox2.Controls.Add(this.rb_Mode_Remove);
             this.groupBox2.Controls.Add(this.rb_Mode_Create);
             this.groupBox2.Controls.Add(this.rb_Mode_None);
             this.groupBox2.Controls.Add(this.rb_Mode_Edit);
             this.groupBox2.Location = new System.Drawing.Point(11, 19);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(147, 69);
+            this.groupBox2.Size = new System.Drawing.Size(147, 92);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Mode";
@@ -172,6 +176,30 @@ namespace CircleEditor
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
+            // rb_set_start
+            // 
+            this.rb_set_start.AutoSize = true;
+            this.rb_set_start.Location = new System.Drawing.Point(6, 65);
+            this.rb_set_start.Name = "rb_set_start";
+            this.rb_set_start.Size = new System.Drawing.Size(63, 17);
+            this.rb_set_start.TabIndex = 5;
+            this.rb_set_start.TabStop = true;
+            this.rb_set_start.Text = "SetStart";
+            this.rb_set_start.UseVisualStyleBackColor = true;
+            this.rb_set_start.CheckedChanged += new System.EventHandler(this.rb_set_start_CheckedChanged);
+            // 
+            // rb_set_end
+            // 
+            this.rb_set_end.AutoSize = true;
+            this.rb_set_end.Location = new System.Drawing.Point(76, 66);
+            this.rb_set_end.Name = "rb_set_end";
+            this.rb_set_end.Size = new System.Drawing.Size(60, 17);
+            this.rb_set_end.TabIndex = 6;
+            this.rb_set_end.TabStop = true;
+            this.rb_set_end.Text = "SetEnd";
+            this.rb_set_end.UseVisualStyleBackColor = true;
+            this.rb_set_end.CheckedChanged += new System.EventHandler(this.rb_set_end_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -208,6 +236,8 @@ namespace CircleEditor
         private System.Windows.Forms.Timer timer1;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
         private System.Windows.Forms.SaveFileDialog saveFileDialog1;
+        private System.Windows.Forms.RadioButton rb_set_end;
+        private System.Windows.Forms.RadioButton rb_set_start;
     }
 }
 

@@ -10,6 +10,8 @@ using System.Windows.Forms;
 
 using System.Xml.Linq;
 
+using System.Globalization;
+
 namespace CircleEditor
 {
 
@@ -24,7 +26,9 @@ namespace CircleEditor
             Edit,
             Moving,
             Editing,
-            Remove
+            Remove,
+            SetStart,
+            SetEnd,
         }
 
 
@@ -72,7 +76,6 @@ namespace CircleEditor
                 m_center = center;
             }
 
-
         }
 
 
@@ -82,12 +85,22 @@ namespace CircleEditor
         Graphics G;
         bool m_isUpdate = false;
 
+        bool m_isStartEntered = false;
+        bool m_isEndEntered = false;
+
+        PointF m_startPoint;
+        PointF m_endPoint;
+
         List<Circle> m_Obstructions;
 
         int m_creatingIndex = -1;
         int m_editingIndex = -1;
 
         System.Drawing.SolidBrush m_obstructionsBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Blue);
+
+        System.Drawing.SolidBrush m_startPointBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Green);
+        System.Drawing.SolidBrush m_endPointBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red);
+
 
         public Form1()
         {
@@ -96,7 +109,6 @@ namespace CircleEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            m_currentMode = Mode.None;
 
             openFileDialog1.Filter = "Text files(*.xml)|*.xml|All files(*.*)|*.*";
             saveFileDialog1.Filter = "Text files(*.xml)|*.xml|All files(*.*)|*.*";
@@ -119,6 +131,24 @@ namespace CircleEditor
         }
 
         private void Draw()
+        {
+            DrawStartAndEndPoints();
+
+            DrawObstructions();
+        }
+
+        private void DrawStartAndEndPoints()
+        {
+            int PointsRadius = 4;
+
+            if (m_isStartEntered)
+                G.FillEllipse(m_startPointBrush, m_startPoint.X - PointsRadius, m_startPoint.Y - PointsRadius, PointsRadius * 2, PointsRadius * 2);
+
+            if (m_isEndEntered)
+                G.FillEllipse(m_endPointBrush, m_endPoint.X - PointsRadius, m_endPoint.Y - PointsRadius, PointsRadius * 2, PointsRadius * 2);
+        }
+
+        private void DrawObstructions()
         {
             foreach (Circle obstruction in m_Obstructions)
             {
@@ -146,6 +176,16 @@ namespace CircleEditor
         private void rb_Mode_Create_CheckedChanged(object sender, EventArgs e)
         {
             m_currentMode = Mode.Create;
+        }
+
+        private void rb_set_start_CheckedChanged(object sender, EventArgs e)
+        {
+            m_currentMode = Mode.SetStart;
+        }
+
+        private void rb_set_end_CheckedChanged(object sender, EventArgs e)
+        {
+            m_currentMode = Mode.SetEnd;
         }
 
         private float distance(PointF a, PointF b)
@@ -190,7 +230,6 @@ namespace CircleEditor
                     m_Obstructions[m_editingIndex].setRadius(new PointF(e.Location.X, e.Location.Y));
                     m_isUpdate = true;
                     break;
-
             }
         }
 
@@ -225,12 +264,21 @@ namespace CircleEditor
                         {
                             m_currentMode = Mode.Moving;
                         }
-
                         break;
                     case Mode.Moving:
                         m_Obstructions[m_editingIndex].setCenter(new PointF(e.Location.X, e.Location.Y));
                         m_editingIndex = -1;
                         m_currentMode = Mode.Edit;
+                        m_isUpdate = true;
+                        break;
+                    case Mode.SetStart:
+                        m_startPoint = new PointF(e.Location.X, e.Location.Y);
+                        m_isStartEntered = true;
+                        m_isUpdate = true;
+                        break;
+                    case Mode.SetEnd:
+                        m_endPoint = new PointF(e.Location.X, e.Location.Y);
+                        m_isEndEntered = true;
                         m_isUpdate = true;
                         break;
 
@@ -262,6 +310,8 @@ namespace CircleEditor
         private void Newbutton_Click(object sender, EventArgs e)
         {
             m_Obstructions.Clear();
+            m_isStartEntered = false;
+            m_isEndEntered = false;
             m_isUpdate = true;
         }
 
@@ -273,20 +323,20 @@ namespace CircleEditor
             }
 
             string filename = saveFileDialog1.FileName;
-
-            XDocument map = new XDocument();
             
+            XElement map = new XElement("map");
+
             XElement obstructions = new XElement("obstructions");
 
-            foreach(Circle obstruct in m_Obstructions)
+            foreach (Circle obstruct in m_Obstructions)
             {
                 XElement obstruction = new XElement("obstruction");
 
                 XElement centerPointElement = new XElement("center");
                 XElement radiusElement = new XElement("radius");
 
-                XAttribute centerX = new XAttribute("X", obstruct.m_center.X.ToString());
-                XAttribute centerY = new XAttribute("Y", obstruct.m_center.Y.ToString());
+                XAttribute centerX = new XAttribute("x", obstruct.m_center.X.ToString());
+                XAttribute centerY = new XAttribute("y", obstruct.m_center.Y.ToString());
 
                 XAttribute radius = new XAttribute("radius", obstruct.m_radius);
 
@@ -301,7 +351,35 @@ namespace CircleEditor
                 obstructions.Add(obstruction);
             }
 
-            obstructions.Save(filename);
+            if (m_isStartEntered)
+            {
+                XElement start = new XElement("start");
+
+                XAttribute startX = new XAttribute("x", m_startPoint.X.ToString());
+                XAttribute startY = new XAttribute("y", m_startPoint.Y.ToString());
+
+                start.Add(startX);
+                start.Add(startY);
+
+                map.Add(start);
+            }
+
+            if (m_isEndEntered)
+            {
+                XElement end = new XElement("end");
+
+                XAttribute endX = new XAttribute("x", m_endPoint.X);
+                XAttribute endY = new XAttribute("y", m_endPoint.Y);
+
+                end.Add(endX);
+                end.Add(endY);
+
+                map.Add(end);
+            }
+
+            map.Add(obstructions);
+
+            map.Save(filename);
         }
 
         private void Loadbutton_Click(object sender, EventArgs e)
@@ -313,30 +391,65 @@ namespace CircleEditor
 
             string filename = openFileDialog1.FileName;
             XDocument xdoc = XDocument.Load(filename);
+            XElement loadMap = xdoc.Element("map");
 
             m_Obstructions.Clear();
 
-            foreach (XElement obstructionElement in xdoc.Element("obstructions").Elements("obstruction"))
+            XElement start = loadMap.Element("start");
+            XElement end = loadMap.Element("end");
+
+            if (start != null)
+            {
+                XAttribute startX = start.Attribute("x");
+                XAttribute startY = start.Attribute("y");
+
+                if (startX != null && startY != null)
+                {
+                    m_startPoint = new PointF((float)startX, (float)startY);
+                    m_isStartEntered = true;
+                }
+            }
+
+            if (end != null)
+            {
+                XAttribute endX = end.Attribute("x");
+                XAttribute endY = end.Attribute("y");
+
+                if (endX != null && endY !=null)
+                {
+                    m_endPoint = new PointF((float)endX, (float)endY);
+                    m_isEndEntered = true;
+                }
+            }
+
+            XElement obstructions = loadMap.Element("obstructions");
+
+            foreach (XElement obstructionElement in obstructions.Elements("obstruction"))
             {
                 XElement centerPointElement = obstructionElement.Element("center");
                 XElement radiusElement = obstructionElement.Element("radius");
 
-                XAttribute centerX = centerPointElement.Attribute("X");
-                XAttribute centerY = centerPointElement.Attribute("Y");
-                XAttribute radius = radiusElement.Attribute("radius");
-
-                if (centerX != null && centerY != null && radius != null)
+                if (centerPointElement != null && radiusElement != null)
                 {
-                    PointF c = new PointF((float)centerX, (float)centerY);
-                    float r = float.Parse(radius.Value);
-                    //float r = float.Parse(radius.Value);
-                    Circle obstruction = new Circle(c, r);
-                    m_Obstructions.Add(obstruction);
+                    XAttribute centerX = centerPointElement.Attribute("x");
+                    XAttribute centerY = centerPointElement.Attribute("y");
+                    XAttribute radius = radiusElement.Attribute("radius");
+
+                    if (centerX != null && centerY != null && radius != null)
+                    {
+                        PointF c = new PointF((float)centerX, (float)centerY);
+                        float r = float.Parse(radius.Value, CultureInfo.InvariantCulture.NumberFormat);
+
+                        Circle obstruction = new Circle(c, r);
+
+                        m_Obstructions.Add(obstruction);
+                    }
                 }
             }
 
             m_isUpdate = true;
         }
+
     }
 }
 
