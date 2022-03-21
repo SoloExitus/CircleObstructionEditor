@@ -78,7 +78,23 @@ namespace CircleEditor
 
         }
 
+        class Edge
+        {
+            public PointF m_first;
+            public PointF m_second;
 
+            public Edge(float fx, float fy, float sx, float sy)
+            {
+                this.m_first = new PointF(fx, fy);
+                this.m_second = new PointF(sx, sy);
+            }
+
+            public Edge(PointF f, PointF s)
+            {
+                this.m_first = f;
+                this.m_second = s;
+            }
+        }
 
         Mode m_currentMode = Mode.None;
 
@@ -188,11 +204,18 @@ namespace CircleEditor
             m_currentMode = Mode.SetEnd;
         }
 
+        private float SquareDistance(PointF a, PointF b)
+        {
+            float dX = a.X - b.X;
+            float dY = a.Y - b.Y;
+            return (dX * dX + dY * dY);
+        }
+
         private float distance(PointF a, PointF b)
         {
             float dX = a.X - b.X;
             float dY = a.Y - b.Y;
-            return (float)Math.Sqrt((double)(dX * dX + dY * dY));
+            return (float)Math.Sqrt((double)SquareDistance(a, b));
         }
 
         private int TryGrabObstruction(PointF location)
@@ -450,6 +473,151 @@ namespace CircleEditor
             m_isUpdate = true;
         }
 
+        private static T Clamp<T>(T val, T min, T max) where T : IComparable<T>
+        {
+            if (val.CompareTo(min) < 0) return min;
+            else if (val.CompareTo(max) > 0) return max;
+            else return val;
+        }
+
+        private bool is_Block(Circle obstruct, PointF A, PointF B)
+        {
+            PointF C = obstruct.m_center;
+
+            float u = ((C.X - A.X)*(B.X - A.X) + (C.Y - A.Y)*(B.Y - A.Y)) / SquareDistance(B,A);
+
+            float Ex = A.X + Clamp(u, 0, 1) * (B.X - A.X);
+            float Ey = A.Y + Clamp(u, 0, 1) * (B.Y - A.Y);
+
+            PointF E = new PointF(Ex, Ey);
+
+            float Sd = SquareDistance(E, C);
+
+            return Sd < (obstruct.m_radius * obstruct.m_radius);
+        }
+
+        private float norm(PointF vect)
+        {
+            return (float)Math.Sqrt((double)vect.X * vect.X + vect.Y * vect.Y);
+        }
+
+        private PointF rotatePoint(PointF p, PointF c, float angle)
+        {
+            float nX = (float)( c.X + (p.X - c.X) * Math.Cos((double)angle) - (p.Y - c.Y) * Math.Sin((double)angle));
+            float nY = (float)( c.Y + (p.X - c.X) * Math.Sin((double)angle) + (p.Y - c.Y) * Math.Cos((double)angle));
+
+            return new PointF(nX, nY);
+        }
+
+        private bool IsObstructionsBlock()
+        {
+            bool block = false;
+
+            foreach (Circle obstruct in m_Obstructions)
+            {
+                if (is_Block(obstruct, m_startPoint, m_endPoint))
+                {
+                    block = true;
+                    break;
+                }
+            }
+
+            Pen pen = new Pen(Color.Green);
+
+
+            if (block)
+            {
+                pen = new Pen(Color.Red);
+            }
+
+            G.DrawLine(pen, m_startPoint, m_endPoint);
+            return block;
+        }
+
+        private void Test_Click(object sender, EventArgs e)
+        {
+            List<Edge> intern = externalTangents(m_Obstructions[0], m_Obstructions[1]);
+            G.FillEllipse(m_startPointBrush, intern[0].m_first.X - 4, intern[0].m_first.Y - 4, 8, 8);
+            G.FillEllipse(m_startPointBrush, intern[0].m_second.X - 4, intern[0].m_second.Y - 4, 8, 8);
+
+            G.FillEllipse(m_endPointBrush, intern[1].m_first.X - 4, intern[1].m_first.Y - 4, 8, 8);
+            G.FillEllipse(m_endPointBrush, intern[1].m_second.X - 4, intern[1].m_second.Y - 4, 8, 8);
+        }
+        private List<Edge> internalTangents(Circle a, Circle b)
+        {
+            PointF centerA = a.m_center;
+            PointF centerB = b.m_center;
+
+            float rA = a.m_radius;
+            float rB = b.m_radius;
+
+            float Q = (float)Math.Acos((double)(rA + rB) / distance(centerA, centerB));
+
+            float vectABX = centerB.X - centerA.X;
+            float vectABY = centerB.Y - centerA.Y;
+
+            PointF VectAB = new PointF(vectABX, vectABY);
+
+            float vectABNorm = norm(VectAB);
+
+            VectAB.X /= vectABNorm;
+            VectAB.Y /= vectABNorm;
+
+
+            PointF G = new PointF(centerA.X + rA* VectAB.X, centerA.Y + rA* VectAB.Y);
+
+            PointF H = new PointF(centerB.X + rB* (-VectAB.X), centerB.Y + rB* (-VectAB.Y));
+
+            PointF C = rotatePoint(G, centerA, -Q);
+            PointF D = rotatePoint(G, centerA, Q);
+
+            PointF E = rotatePoint(H, centerB, Q);
+            PointF F = rotatePoint(H, centerB, -Q);
+
+            List<Edge> list = new List<Edge>();
+            list.Add(new Edge(C,F));
+            list.Add(new Edge(D,E));
+            
+            return list;
+        }
+
+        private List<Edge> externalTangents(Circle a, Circle b)
+        {
+            PointF centerA = a.m_center;
+            PointF centerB = b.m_center;
+
+            float rA = a.m_radius;
+            float rB = b.m_radius;
+
+            float Q = (float)Math.Acos((double)Math.Abs(rA - rB) / distance(centerA, centerB));
+
+            float vectABX = centerB.X - centerA.X;
+            float vectABY = centerB.Y - centerA.Y;
+
+            PointF VectAB = new PointF(vectABX, vectABY);
+
+            float vectABNorm = norm(VectAB);
+
+            VectAB.X /= vectABNorm;
+            VectAB.Y /= vectABNorm;
+
+
+            PointF G = new PointF(centerA.X + rA * VectAB.X, centerA.Y + rA * VectAB.Y);
+
+            PointF H = new PointF(centerB.X + rB * VectAB.X, centerB.Y + rB * VectAB.Y);
+
+            PointF C = rotatePoint(G, centerA, -Q);
+            PointF D = rotatePoint(G, centerA, Q);
+
+            PointF E = rotatePoint(H, centerB, Q);
+            PointF F = rotatePoint(H, centerB, -Q);
+
+            List<Edge> list = new List<Edge>();
+            list.Add(new Edge(C, F));
+            list.Add(new Edge(D, E));
+
+            return list;
+        }
     }
 }
 
