@@ -37,6 +37,10 @@ namespace CircleEditor
 
             public PointF m_center;
             public float m_radius = 0;
+            public List<int> m_ConnectWithCircles = new List<int>();
+            public List<int> m_VertexIndexes = new List<int>();
+            //public List<int> m_EdgeIndexes = new List<int>();
+            public bool m_isEdgesGenerated = false;
 
             public Circle()
             {
@@ -96,6 +100,115 @@ namespace CircleEditor
             }
         }
 
+        class GraphVertex
+        {
+            public PointF m_position;
+            public int m_obstacleIndex;
+            public List<int> m_incidentEdgeIndexes = new List<int>();
+            public int m_parentVertexIndex = -1;
+            public float m_G = -1;
+            public float m_H = -1;
+            public float m_F = -1;
+            public bool m_isViewed = false;
+
+            private float distance(PointF a, PointF b)
+            {
+                float dX = a.X - b.X;
+                float dY = a.Y - b.Y;
+                return (float)Math.Sqrt((double)(dX * dX + dY * dY));
+            }
+
+            public GraphVertex(PointF point, int obstacleIndex, PointF endPoint)
+            {
+                m_position = point;
+                m_obstacleIndex = obstacleIndex;
+                m_H = distance(m_position, endPoint);
+            }
+
+            public GraphVertex(float x, float y, int obstacleIndex, float g, PointF endPoint) :
+                this(new PointF(x, y), obstacleIndex, endPoint)
+            {
+            }
+
+            public void setParent(int parentIndex, float pathCost)
+            {
+                m_G = pathCost;
+                m_parentVertexIndex = parentIndex;
+                m_F = m_G + m_H;
+            }
+            
+        }
+
+        class GraphEdge
+        {
+            public int m_firstVertexIndex;
+            public int m_secondVertexIndex;
+            public float m_lenght;
+
+
+            public GraphEdge(int firstVertexIndex, int secondVertexIndex, float lengnt)
+            {
+                m_firstVertexIndex = firstVertexIndex;
+                m_secondVertexIndex = secondVertexIndex;
+                m_lenght = lengnt;
+            }
+        }
+
+
+
+
+        class PriorityQueue
+        {
+            private List<int> Queue;
+
+            public PriorityQueue()
+            {
+                Queue = new List<int>();
+            }
+
+            public bool have(int index)
+            {
+                for(int i=0; i< Queue.Count; i++)
+                {
+                    if (Queue[i] == index)
+                        return true;
+                }
+                
+                return false;
+            }
+
+            public void push(int index)
+            {
+                Queue.Add(index);
+            }
+
+            public int pop(List<GraphVertex> Vertexes)
+            {
+                if (this.empty())
+                    return -1;
+
+                int minIndex = Queue[0];
+                float min = Vertexes[Queue[0]].m_F;
+                for(int i=1;i< Queue.Count; i++)
+                {
+                    if (Vertexes[Queue[i]].m_F < min)
+                    {
+                        minIndex = Queue[i];
+                        min = Vertexes[Queue[i]].m_F;
+                    }
+                }
+    
+                Queue.Remove(minIndex);
+                return minIndex;
+            }
+
+            public bool empty()
+            {
+                return Queue.Count == 0;
+            }
+        }
+
+
         Mode m_currentMode = Mode.None;
 
         Graphics G;
@@ -108,6 +221,9 @@ namespace CircleEditor
         PointF m_endPoint;
 
         List<Circle> m_Obstructions;
+
+        List<GraphVertex> m_GraphVertexes = new List<GraphVertex>();
+        List<GraphEdge> m_GraphEdges = new List<GraphEdge>();
 
         int m_creatingIndex = -1;
         int m_editingIndex = -1;
@@ -155,7 +271,7 @@ namespace CircleEditor
 
         private void DrawStartAndEndPoints()
         {
-            int PointsRadius = 4;
+            int PointsRadius = 8;
 
             if (m_isStartEntered)
                 G.FillEllipse(m_startPointBrush, m_startPoint.X - PointsRadius, m_startPoint.Y - PointsRadius, PointsRadius * 2, PointsRadius * 2);
@@ -170,7 +286,7 @@ namespace CircleEditor
             {
                 PointF center = obstruction.m_center;
                 float radius = obstruction.m_radius;
-                G.FillEllipse(m_obstructionsBrush, center.X - radius, center.Y - radius, radius * 2, radius * 2);
+                G.DrawEllipse(new Pen(Color.DeepSkyBlue, 2), center.X - radius, center.Y - radius, radius * 2, radius * 2);
             }
         }
 
@@ -213,8 +329,6 @@ namespace CircleEditor
 
         private float distance(PointF a, PointF b)
         {
-            float dX = a.X - b.X;
-            float dY = a.Y - b.Y;
             return (float)Math.Sqrt((double)SquareDistance(a, b));
         }
 
@@ -498,6 +612,7 @@ namespace CircleEditor
 
         private float norm(PointF vect)
         {
+            
             return (float)Math.Sqrt((double)vect.X * vect.X + vect.Y * vect.Y);
         }
 
@@ -509,41 +624,448 @@ namespace CircleEditor
             return new PointF(nX, nY);
         }
 
-        private bool IsObstructionsBlock()
+        private void GenerateEdgesAndVertexes(int obstacleIndex)
         {
-            bool block = false;
+            if (m_Obstructions[obstacleIndex].m_isEdgesGenerated)
+                return;
 
-            foreach (Circle obstruct in m_Obstructions)
+            for(int i = 0; i < m_Obstructions.Count; i++)
             {
-                if (is_Block(obstruct, m_startPoint, m_endPoint))
+                if (i == obstacleIndex)
+                    continue;
+
+                bool is_newLink = true;
+                for (int j = 0; j < m_Obstructions[obstacleIndex].m_ConnectWithCircles.Count; j++ )
                 {
-                    block = true;
-                    break;
+                    if (i == j)
+                    {
+                        is_newLink = false;
+                        break;
+                    }
+                }
+
+                m_Obstructions[obstacleIndex].m_ConnectWithCircles.Add(i);
+
+                if (is_newLink)
+                {
+                    List<Edge> surfing = surfingEdges(obstacleIndex, i);
+
+                    foreach(Edge sEdge in surfing)
+                    {
+                        int currentEdgeIndex = m_GraphEdges.Count;
+
+                        GraphVertex firstVertex = new GraphVertex(sEdge.m_first, obstacleIndex, m_endPoint);
+                        firstVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
+                        int firstVertexIndex = m_GraphVertexes.Count;
+                        m_GraphVertexes.Add(firstVertex);
+                        m_Obstructions[obstacleIndex].m_VertexIndexes.Add(firstVertexIndex);
+
+                        GraphVertex secondVertex = new GraphVertex(sEdge.m_second, i, m_endPoint);
+                        secondVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
+                        int secondVertexIndex = m_GraphVertexes.Count;
+                        m_GraphVertexes.Add(secondVertex);
+                        m_Obstructions[i].m_VertexIndexes.Add(secondVertexIndex);
+
+                        GraphEdge newEdgeFS = new GraphEdge(firstVertexIndex, secondVertexIndex, distance(firstVertex.m_position, secondVertex.m_position));
+                        m_GraphEdges.Add(newEdgeFS);
+
+                        //m_Obstructions[obstacleIndex].m_EdgeIndexes.Add(currentEdgeIndex);
+                        //m_Obstructions[i].m_EdgeIndexes.Add(currentEdgeIndex);
+                    }
                 }
             }
 
-            Pen pen = new Pen(Color.Green);
+            List<GraphEdge> hugging = createHuggingEdges(obstacleIndex);
 
+            foreach (GraphEdge hEdge in hugging)
+            {
+                int currentEdgeIndex = m_GraphEdges.Count;
+                m_GraphEdges.Add(hEdge);
+                //m_Obstructions[obstacleIndex].m_EdgeIndexes.Add(currentEdgeIndex);
+
+                m_GraphVertexes[hEdge.m_firstVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
+                m_GraphVertexes[hEdge.m_secondVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
+            }
+
+            m_Obstructions[obstacleIndex].m_isEdgesGenerated = true;
+        }
+
+
+
+        private void CreatStartAndEndVertexesAndEdges()
+        {
+            // index 0 - start
+            GraphVertex startVertex = new GraphVertex(m_startPoint, -1, m_endPoint);
+            m_GraphVertexes.Add(startVertex);
+            startVertex.setParent(-1, 0);
+
+            // index 1 - finish
+            GraphVertex endVertex = new GraphVertex(m_endPoint, -1, m_endPoint);
+            m_GraphVertexes.Add(endVertex);
+
+            // ребро между начальной и конечной точками
+            if (!IsObstructionsBlockEdge(new Edge(m_startPoint, m_endPoint), -1, -1))
+            {
+                int startToEndIndex = m_GraphEdges.Count;
+                GraphEdge startToEnd = new GraphEdge(0, 1, distance(m_startPoint, m_endPoint));
+                m_GraphEdges.Add(startToEnd);
+
+                m_GraphVertexes[0].m_incidentEdgeIndexes.Add(startToEndIndex);
+                m_GraphVertexes[1].m_incidentEdgeIndexes.Add(startToEndIndex);
+
+            }
+
+
+            for(int i = 0; i < m_Obstructions.Count; i++)
+            {
+                List<Edge> edges = internalBitangents(m_startPoint, 0, m_Obstructions[i].m_center, m_Obstructions[i].m_radius);
+
+                foreach(Edge e in edges)
+                {
+                    if (!IsObstructionsBlockEdge(e, -1, i))
+                    {
+                        int newEdgeIndex = m_GraphEdges.Count;
+
+                        GraphVertex newVertex = new GraphVertex(e.m_second, i, m_endPoint);
+
+
+
+                        newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
+
+                        m_GraphVertexes[0].m_incidentEdgeIndexes.Add(newEdgeIndex);
+
+                        int newVertexIndex = m_GraphVertexes.Count;
+                        m_GraphVertexes.Add(newVertex);
+
+                        m_Obstructions[i].m_VertexIndexes.Add(newVertexIndex);
+
+                        GraphEdge newEdge = new GraphEdge(0, newVertexIndex, distance(m_startPoint, e.m_second));
+
+                        m_GraphEdges.Add(newEdge);
+
+                        //m_Obstructions[i].m_EdgeIndexes.Add(newEdgeIndex);
+                    }
+                }
+
+            }
+
+            for (int i = 0; i < m_Obstructions.Count; i++)
+            {
+                List<Edge> edges = internalBitangents(m_endPoint, 0, m_Obstructions[i].m_center, m_Obstructions[i].m_radius);
+
+                foreach (Edge e in edges)
+                {
+                    if (!IsObstructionsBlockEdge(e, -1, i))
+                    {
+                        int newEdgeIndex = m_GraphEdges.Count;
+
+                        GraphVertex newVertex = new GraphVertex(e.m_second, i, m_endPoint);
+                        newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
+
+                        m_GraphVertexes[1].m_incidentEdgeIndexes.Add(newEdgeIndex);
+
+                        int newVertexIndex = m_GraphVertexes.Count;
+                        m_GraphVertexes.Add(newVertex);
+
+                        m_Obstructions[i].m_VertexIndexes.Add(newVertexIndex);
+
+                        GraphEdge newEdge = new GraphEdge(1, newVertexIndex, distance(m_endPoint, e.m_second));
+
+                        m_GraphEdges.Add(newEdge);
+
+                        //m_Obstructions[i].m_EdgeIndexes.Add(newEdgeIndex);
+                    }
+                }
+
+            }
+
+        }
+
+        private void ClearGraph()
+        {
+            m_GraphVertexes.Clear();
+            m_GraphEdges.Clear();
+
+            for (int i = 0; i < m_Obstructions.Count; i++)
+            {
+                m_Obstructions[i].m_isEdgesGenerated = false;
+                m_Obstructions[i].m_VertexIndexes.Clear();
+                m_Obstructions[i].m_ConnectWithCircles.Clear();
+                //m_Obstructions[i].m_EdgeIndexes.Clear();
+
+            }
+        }
+
+        private bool RunA()
+        {
+            ClearGraph();
+
+            PriorityQueue Q = new PriorityQueue();
+
+            CreatStartAndEndVertexesAndEdges();
+
+            Q.push(0);
+
+            int current = -1;
+
+            while (!Q.empty())
+            {
+                current = Q.pop(m_GraphVertexes);
+                if (current == 1)       // т.е. конечная точка
+                    break;
+
+                m_GraphVertexes[current].m_isViewed = true;
+
+                if (current != 0)
+                {
+                    GenerateEdgesAndVertexes(m_GraphVertexes[current].m_obstacleIndex);
+                }
+
+                foreach (int edgeIndex in m_GraphVertexes[current].m_incidentEdgeIndexes)
+                {
+                    float pathLength = m_GraphVertexes[current].m_G + m_GraphEdges[edgeIndex].m_lenght;
+
+                    int nextVertexIndex = m_GraphEdges[edgeIndex].m_firstVertexIndex == current ? m_GraphEdges[edgeIndex].m_secondVertexIndex : m_GraphEdges[edgeIndex].m_firstVertexIndex;
+
+                    /*if (m_GraphVertexes[nextVertexIndex].m_isViewed && pathLength >= m_GraphVertexes[nextVertexIndex].m_G)
+                        continue;*/
+
+                    if (m_GraphVertexes[nextVertexIndex].m_G == -1 || pathLength < m_GraphVertexes[nextVertexIndex].m_G)
+                    {
+                        m_GraphVertexes[nextVertexIndex].setParent(current, pathLength);
+
+                        if (!Q.have(nextVertexIndex))
+                            Q.push(nextVertexIndex);
+                    }
+                }
+
+            }
+
+            if (current == 1)
+                return true;
+
+            return false;
+        }
+
+        private void Test_Click(object sender, EventArgs e)
+        {
+            if (!m_isStartEntered || !m_isEndEntered)
+                return;
+
+            bool result = RunA();
+
+            if (result)
+            {
+                List<int> vertexPathFromFinish = new List<int>();
+                List<int> edgesPath = new List<int>();
+
+                int currentVertexIndex = 1;
+                while (currentVertexIndex != -1)
+                {
+                    vertexPathFromFinish.Add(currentVertexIndex);
+                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[currentVertexIndex].m_position.X - 3, m_GraphVertexes[currentVertexIndex].m_position.Y - 3, 6, 6);
+                    currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
+                }
+
+                /*for(int i = 1; i < vertexPathFromFinish.Count; i++)
+                {
+                    int firstVertexIndex = vertexPathFromFinish[i - 1];
+                    int secondVertexIndex = vertexPathFromFinish[i];
+
+                    int currentEdgeIndex = -1;
+                    foreach (int incidentEdgeIndex in m_GraphVertexes[firstVertexIndex].m_incidentEdgeIndexes)
+                    {
+                        if (((m_GraphEdges[incidentEdgeIndex].m_firstVertexIndex == firstVertexIndex) && (m_GraphEdges[incidentEdgeIndex].m_secondVertexIndex == secondVertexIndex)) ||
+                            ((m_GraphEdges[incidentEdgeIndex].m_secondVertexIndex == firstVertexIndex) && (m_GraphEdges[incidentEdgeIndex].m_firstVertexIndex == secondVertexIndex)))
+                        {
+                            currentEdgeIndex = incidentEdgeIndex;
+                            break;
+                        }
+
+                    }
+
+                    if (currentEdgeIndex != -1)
+                        edgesPath.Add(currentEdgeIndex);
+                    else
+                        throw new Exception();
+
+                }*/
+
+                DisplayPath(vertexPathFromFinish);
+            }
+        }
+
+        private float ConvertradToDegrees(float rad)
+        {
+            return rad * 180 / (float)Math.PI;
+        }
+
+        private float convert(float rad)
+        {
+            if (rad < 0)
+            {
+                return (float)Math.Abs(rad);
+            }
+
+            return (float)Math.PI * 2 - rad;
+        }
+
+        private void DisplayPath(List<int> path)
+        {
+            for(int i = 0; i < path.Count - 1; i++)
+            {
+                if (m_GraphVertexes[path[i]].m_obstacleIndex == m_GraphVertexes[path[i + 1]].m_obstacleIndex && path[i] != 1 && path[i] != 0)
+                {
+                    Circle currentObst = m_Obstructions[m_GraphVertexes[path[i]].m_obstacleIndex];
+                    PointF center = currentObst.m_center;
+
+                    PointF OX = new PointF(1, 0);
+
+                    PointF firstVector = new PointF(m_GraphVertexes[path[i + 1]].m_position.X - center.X, m_GraphVertexes[path[i + 1]].m_position.Y - center.Y);
+                    PointF secondVector = new PointF(m_GraphVertexes[path[i]].m_position.X - center.X, m_GraphVertexes[path[i]].m_position.Y - center.Y);
+
+                    float firstAngleRad = AngleBetweenVectors(ref firstVector, ref OX);
+                    float secondAngleRad = AngleBetweenVectors(ref secondVector, ref OX);
+
+                    
+
+                    float firstAngle = ConvertradToDegrees(convert(firstAngleRad));
+                    float secondAngle = ConvertradToDegrees(convert(secondAngleRad));
+
+                    G.DrawArc(new Pen(Color.DarkRed, 3), center.X - currentObst.m_radius, center.Y - currentObst.m_radius,
+                        currentObst.m_radius * 2, currentObst.m_radius * 2, firstAngle, secondAngle - firstAngle);
+                }
+                else
+                    G.DrawLine(new Pen(Color.DarkRed), m_GraphVertexes[path[i+1]].m_position, m_GraphVertexes[path[i]].m_position);
+            }
+
+            /*G.FillEllipse(m_startPointBrush, intern[0].m_first.X - 4, intern[0].m_first.Y - 4, 8, 8);
+            G.FillEllipse(m_startPointBrush, intern[0].m_second.X - 4, intern[0].m_second.Y - 4, 8, 8);
+
+            G.FillEllipse(m_endPointBrush, intern[1].m_first.X - 4, intern[1].m_first.Y - 4, 8, 8);
+            G.FillEllipse(m_endPointBrush, intern[1].m_second.X - 4, intern[1].m_second.Y - 4, 8, 8);*/
+        }
+
+        private float AngleBetweenVectors(ref PointF f, ref PointF s)
+        {
+            return (float)Math.Atan2(f.X * s.Y - f.Y * s.X, f.X * s.X + f.Y * s.Y);
+        }
+
+        private float calculateHuggingEdgeLenght(PointF circleCenter,float circleRadius, PointF firstPoint, PointF secondPoint)
+        {
+            PointF firstVector = new PointF();
+            firstVector.X= firstPoint.X - circleCenter.X;
+            firstVector.Y = firstPoint.Y - circleCenter.Y;
+
+            PointF secondVector = new PointF();
+            secondVector.X = secondPoint.X - circleCenter.X;
+            secondVector.Y = secondPoint.Y - circleCenter.Y;
+
+            float angle = Math.Abs(AngleBetweenVectors(ref firstVector, ref secondVector));
+
+            float huggingEdgeLenght = circleRadius * angle;
+
+            return huggingEdgeLenght;
+        }
+
+        private GraphEdge createHuggingEdge(int obstacleIndex, int firstVertexIndex, int secondVertexIndex)
+        {
+            GraphEdge edge = new GraphEdge(firstVertexIndex, secondVertexIndex, calculateHuggingEdgeLenght(m_Obstructions[obstacleIndex].m_center, m_Obstructions[obstacleIndex].m_radius, m_GraphVertexes[firstVertexIndex].m_position, m_GraphVertexes[secondVertexIndex].m_position));
+
+            return edge;
+        }
+
+        private List<GraphEdge> createHuggingEdges(int obstacleIndex)
+        {
+            List<GraphEdge> edges = new List<GraphEdge>();
+
+            List<int> obstacleVertexes = m_Obstructions[obstacleIndex].m_VertexIndexes;
+
+            for (int i = 0; i < obstacleVertexes.Count; i++)
+                for (int j = i + 1; j < obstacleVertexes.Count; j++)
+                    edges.Add(createHuggingEdge(obstacleIndex, obstacleVertexes[i], obstacleVertexes[j]));
+
+            return edges;
+        }
+
+        private bool IsObstructionsBlockEdge(Edge edge, int firstIgnore, int secondIgnore)
+        {
+            PointF edgeStart = edge.m_first;
+            PointF edgeEnd = edge.m_second;
+
+            for(int i = 0; i < m_Obstructions.Count; i++)
+            {
+                if (i == firstIgnore || i == secondIgnore)
+                    continue;
+
+                if (is_Block(m_Obstructions[i], edgeStart, edgeEnd))
+                {
+                    return true;
+                }
+            }
+
+            /*Pen pen = new Pen(Color.Green);
 
             if (block)
             {
                 pen = new Pen(Color.Red);
             }
 
-            G.DrawLine(pen, m_startPoint, m_endPoint);
-            return block;
+            G.DrawLine(pen, m_startPoint, m_endPoint);*/
+
+            return false;
         }
 
-        private void Test_Click(object sender, EventArgs e)
+        /*private List<Edge> surfingEdges(int circleAIndex, int circleBIndex)
         {
-            List<Edge> intern = externalTangents(m_Obstructions[0], m_Obstructions[1]);
-            G.FillEllipse(m_startPointBrush, intern[0].m_first.X - 4, intern[0].m_first.Y - 4, 8, 8);
-            G.FillEllipse(m_startPointBrush, intern[0].m_second.X - 4, intern[0].m_second.Y - 4, 8, 8);
+            PointF centerA = m_Obstructions[circleAIndex].m_center;
+            float rA = m_Obstructions[circleAIndex].m_radius;
 
-            G.FillEllipse(m_endPointBrush, intern[1].m_first.X - 4, intern[1].m_first.Y - 4, 8, 8);
-            G.FillEllipse(m_endPointBrush, intern[1].m_second.X - 4, intern[1].m_second.Y - 4, 8, 8);
+            PointF centerB = m_Obstructions[circleBIndex].m_center;
+            float rB = m_Obstructions[circleBIndex].m_radius;
+
+            return surfingEdges(centerA, rA, centerB, rB, circleAIndex, circleBIndex);
+        }*/
+
+        private List<Edge> surfingEdges(int firstObstIndex, int secondObstIndex)
+        {
+            PointF centerA = m_Obstructions[firstObstIndex].m_center;
+            float rA = m_Obstructions[firstObstIndex].m_radius;
+
+            PointF centerB = m_Obstructions[secondObstIndex].m_center;
+            float rB = m_Obstructions[secondObstIndex].m_radius;
+
+            List<Edge> edges = new List<Edge>();
+
+            List<Edge> internalBit = internalBitangents(centerA, rA, centerB, rB);
+            List<Edge> externalBit = externalBitangents(centerA, rA, centerB, rB);
+
+            for(int i=0; i < internalBit.Count; i++)
+            {
+                if (!IsObstructionsBlockEdge(internalBit[i], firstObstIndex, secondObstIndex))
+                    edges.Add(internalBit[i]);
+            }
+
+            for (int i = 0; i < externalBit.Count; i++)
+            {
+                if (!IsObstructionsBlockEdge(externalBit[i], firstObstIndex, secondObstIndex))
+                    edges.Add(externalBit[i]);
+            }
+
+            return edges;
         }
-        private List<Edge> internalTangents(Circle a, Circle b)
+
+        private List<Edge> internalBitangents(Circle a, Circle b)
+        {
+            PointF centerA = a.m_center;
+            PointF centerB = b.m_center;
+
+            float rA = a.m_radius;
+            float rB = b.m_radius;
+            return internalBitangents(centerA, rA, centerB, rB);
+        }
+
+        private List<Edge> externalBitangents(Circle a, Circle b)
         {
             PointF centerA = a.m_center;
             PointF centerB = b.m_center;
@@ -551,6 +1073,11 @@ namespace CircleEditor
             float rA = a.m_radius;
             float rB = b.m_radius;
 
+            return externalBitangents(centerA, rA, centerB, rB);
+        }
+
+        private List<Edge> internalBitangents(PointF centerA, float rA, PointF centerB, float rB)
+        {
             float Q = (float)Math.Acos((double)(rA + rB) / distance(centerA, centerB));
 
             float vectABX = centerB.X - centerA.X;
@@ -581,30 +1108,32 @@ namespace CircleEditor
             return list;
         }
 
-        private List<Edge> externalTangents(Circle a, Circle b)
+
+        private List<Edge> externalBitangents(PointF centerA, float rA, PointF centerB, float rB)
         {
-            PointF centerA = a.m_center;
-            PointF centerB = b.m_center;
-
-            float rA = a.m_radius;
-            float rB = b.m_radius;
-
             float Q = (float)Math.Acos((double)Math.Abs(rA - rB) / distance(centerA, centerB));
 
-            float vectABX = centerB.X - centerA.X;
-            float vectABY = centerB.Y - centerA.Y;
+            float vectBLX = centerB.X - centerA.X;
+            float vectBLY = centerB.Y - centerA.Y;
 
-            PointF VectAB = new PointF(vectABX, vectABY);
+            if (rB > rA)
+            {
+                vectBLX *= -1;
+                vectBLY *= -1;
+            }
 
-            float vectABNorm = norm(VectAB);
+            // вектор из центра большего препятствия в центр меньшего, если равны то не важно
+            PointF VectBL = new PointF(vectBLX, vectBLY);
 
-            VectAB.X /= vectABNorm;
-            VectAB.Y /= vectABNorm;
+            float vectBLNorm = norm(VectBL);
+
+            VectBL.X /= vectBLNorm;
+            VectBL.Y /= vectBLNorm;
 
 
-            PointF G = new PointF(centerA.X + rA * VectAB.X, centerA.Y + rA * VectAB.Y);
+            PointF G = new PointF(centerA.X + rA * VectBL.X, centerA.Y + rA * VectBL.Y);
 
-            PointF H = new PointF(centerB.X + rB * VectAB.X, centerB.Y + rB * VectAB.Y);
+            PointF H = new PointF( centerB.X + rB * VectBL.X, centerB.Y + rB * VectBL.Y);
 
             PointF C = rotatePoint(G, centerA, -Q);
             PointF D = rotatePoint(G, centerA, Q);
