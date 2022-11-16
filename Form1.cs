@@ -1147,6 +1147,51 @@ namespace CircleEditor
 
             return list;
         }
+
+        private bool InterseptionWithOthers(Circle newObs)
+        {
+            foreach( Circle curObstr in m_Obstructions)
+            {
+                float sqrDist = SquareDistance(curObstr.m_center, newObs.m_center);
+                float radiusSum = (curObstr.m_radius + newObs.m_radius);
+                if (sqrDist < radiusSum * radiusSum)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void bt_createRandom_Click(object sender, EventArgs e)
+        {
+            int createNum = (int)(numUD_numberCreate.Value);
+
+            int max_X = this.ClientSize.Width;
+            int max_Y = this.ClientSize.Height;
+
+            Random rnd = new Random();
+
+            for (int i = 0; i < createNum; i++)
+            { 
+                Circle newObstruct;
+
+                do
+                {
+                    float center_X = rnd.Next(0, max_X + 1);
+                    float center_Y = rnd.Next(0, max_Y + 1);
+
+                    float radius = rnd.Next(1, (int)(max_Y / 2) + 1);
+
+                    newObstruct = new Circle(new PointF(center_X, center_Y), radius);
+
+                } while (InterseptionWithOthers(newObstruct));
+
+                m_Obstructions.Add(newObstruct);
+            }
+
+            m_isUpdate = true;
+        }
     }
 }
 

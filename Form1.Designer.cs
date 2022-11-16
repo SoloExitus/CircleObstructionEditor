@@ -47,15 +47,20 @@ namespace CircleEditor
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.bt_createRandom = new System.Windows.Forms.Button();
+            this.gb_randomGeneration = new System.Windows.Forms.GroupBox();
+            this.numUD_numberCreate = new System.Windows.Forms.NumericUpDown();
             this.groupBox1.SuspendLayout();
             this.gb_Algorithms.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            this.gb_randomGeneration.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).BeginInit();
             this.SuspendLayout();
             // 
             // newbutton
             // 
-            this.newbutton.Location = new System.Drawing.Point(38, 19);
+            this.newbutton.Location = new System.Drawing.Point(6, 19);
             this.newbutton.Name = "newbutton";
             this.newbutton.Size = new System.Drawing.Size(69, 21);
             this.newbutton.TabIndex = 0;
@@ -66,12 +71,13 @@ namespace CircleEditor
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.gb_randomGeneration);
             this.groupBox1.Controls.Add(this.gb_Algorithms);
             this.groupBox1.Controls.Add(this.groupBox3);
             this.groupBox1.Controls.Add(this.groupBox2);
-            this.groupBox1.Location = new System.Drawing.Point(624, 12);
+            this.groupBox1.Location = new System.Drawing.Point(620, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(164, 264);
+            this.groupBox1.Size = new System.Drawing.Size(168, 362);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Control";
@@ -79,7 +85,7 @@ namespace CircleEditor
             // gb_Algorithms
             // 
             this.gb_Algorithms.Controls.Add(this.Test);
-            this.gb_Algorithms.Location = new System.Drawing.Point(11, 202);
+            this.gb_Algorithms.Location = new System.Drawing.Point(7, 300);
             this.gb_Algorithms.Name = "gb_Algorithms";
             this.gb_Algorithms.Size = new System.Drawing.Size(147, 53);
             this.gb_Algorithms.TabIndex = 3;
@@ -88,9 +94,9 @@ namespace CircleEditor
             // 
             // Test
             // 
-            this.Test.Location = new System.Drawing.Point(7, 20);
+            this.Test.Location = new System.Drawing.Point(6, 19);
             this.Test.Name = "Test";
-            this.Test.Size = new System.Drawing.Size(75, 23);
+            this.Test.Size = new System.Drawing.Size(69, 23);
             this.Test.TabIndex = 0;
             this.Test.Text = "A*";
             this.Test.UseVisualStyleBackColor = true;
@@ -101,18 +107,18 @@ namespace CircleEditor
             this.groupBox3.Controls.Add(this.button3);
             this.groupBox3.Controls.Add(this.button2);
             this.groupBox3.Controls.Add(this.newbutton);
-            this.groupBox3.Location = new System.Drawing.Point(11, 117);
+            this.groupBox3.Location = new System.Drawing.Point(7, 215);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(147, 79);
+            this.groupBox3.Size = new System.Drawing.Size(151, 79);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Map";
             // 
             // button3
             // 
-            this.button3.Location = new System.Drawing.Point(83, 46);
+            this.button3.Location = new System.Drawing.Point(79, 45);
             this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(58, 23);
+            this.button3.Size = new System.Drawing.Size(66, 23);
             this.button3.TabIndex = 2;
             this.button3.Text = "Save";
             this.button3.UseVisualStyleBackColor = true;
@@ -122,7 +128,7 @@ namespace CircleEditor
             // 
             this.button2.Location = new System.Drawing.Point(6, 46);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(58, 22);
+            this.button2.Size = new System.Drawing.Size(69, 22);
             this.button2.TabIndex = 1;
             this.button2.Text = "Load";
             this.button2.UseVisualStyleBackColor = true;
@@ -136,9 +142,9 @@ namespace CircleEditor
             this.groupBox2.Controls.Add(this.rb_Mode_Create);
             this.groupBox2.Controls.Add(this.rb_Mode_None);
             this.groupBox2.Controls.Add(this.rb_Mode_Edit);
-            this.groupBox2.Location = new System.Drawing.Point(11, 19);
+            this.groupBox2.Location = new System.Drawing.Point(7, 19);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(147, 92);
+            this.groupBox2.Size = new System.Drawing.Size(147, 134);
             this.groupBox2.TabIndex = 2;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Mode";
@@ -146,7 +152,7 @@ namespace CircleEditor
             // rb_set_end
             // 
             this.rb_set_end.AutoSize = true;
-            this.rb_set_end.Location = new System.Drawing.Point(76, 66);
+            this.rb_set_end.Location = new System.Drawing.Point(75, 107);
             this.rb_set_end.Name = "rb_set_end";
             this.rb_set_end.Size = new System.Drawing.Size(60, 17);
             this.rb_set_end.TabIndex = 6;
@@ -158,7 +164,7 @@ namespace CircleEditor
             // rb_set_start
             // 
             this.rb_set_start.AutoSize = true;
-            this.rb_set_start.Location = new System.Drawing.Point(6, 65);
+            this.rb_set_start.Location = new System.Drawing.Point(6, 107);
             this.rb_set_start.Name = "rb_set_start";
             this.rb_set_start.Size = new System.Drawing.Size(63, 17);
             this.rb_set_start.TabIndex = 5;
@@ -170,7 +176,7 @@ namespace CircleEditor
             // rb_Mode_Remove
             // 
             this.rb_Mode_Remove.AutoSize = true;
-            this.rb_Mode_Remove.Location = new System.Drawing.Point(7, 42);
+            this.rb_Mode_Remove.Location = new System.Drawing.Point(6, 84);
             this.rb_Mode_Remove.Name = "rb_Mode_Remove";
             this.rb_Mode_Remove.Size = new System.Drawing.Size(65, 17);
             this.rb_Mode_Remove.TabIndex = 4;
@@ -182,7 +188,7 @@ namespace CircleEditor
             // rb_Mode_Create
             // 
             this.rb_Mode_Create.AutoSize = true;
-            this.rb_Mode_Create.Location = new System.Drawing.Point(76, 19);
+            this.rb_Mode_Create.Location = new System.Drawing.Point(6, 42);
             this.rb_Mode_Create.Name = "rb_Mode_Create";
             this.rb_Mode_Create.Size = new System.Drawing.Size(56, 17);
             this.rb_Mode_Create.TabIndex = 3;
@@ -206,7 +212,7 @@ namespace CircleEditor
             // rb_Mode_Edit
             // 
             this.rb_Mode_Edit.AutoSize = true;
-            this.rb_Mode_Edit.Location = new System.Drawing.Point(76, 42);
+            this.rb_Mode_Edit.Location = new System.Drawing.Point(79, 84);
             this.rb_Mode_Edit.Name = "rb_Mode_Edit";
             this.rb_Mode_Edit.Size = new System.Drawing.Size(43, 17);
             this.rb_Mode_Edit.TabIndex = 2;
@@ -223,6 +229,34 @@ namespace CircleEditor
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
+            // 
+            // bt_createRandom
+            // 
+            this.bt_createRandom.Location = new System.Drawing.Point(83, 19);
+            this.bt_createRandom.Name = "bt_createRandom";
+            this.bt_createRandom.Size = new System.Drawing.Size(62, 20);
+            this.bt_createRandom.TabIndex = 8;
+            this.bt_createRandom.Text = "Create";
+            this.bt_createRandom.UseVisualStyleBackColor = true;
+            this.bt_createRandom.Click += new System.EventHandler(this.bt_createRandom_Click);
+            // 
+            // gb_randomGeneration
+            // 
+            this.gb_randomGeneration.Controls.Add(this.numUD_numberCreate);
+            this.gb_randomGeneration.Controls.Add(this.bt_createRandom);
+            this.gb_randomGeneration.Location = new System.Drawing.Point(7, 159);
+            this.gb_randomGeneration.Name = "gb_randomGeneration";
+            this.gb_randomGeneration.Size = new System.Drawing.Size(147, 50);
+            this.gb_randomGeneration.TabIndex = 2;
+            this.gb_randomGeneration.TabStop = false;
+            this.gb_randomGeneration.Text = "Random generation";
+            // 
+            // numUD_numberCreate
+            // 
+            this.numUD_numberCreate.Location = new System.Drawing.Point(7, 18);
+            this.numUD_numberCreate.Name = "numUD_numberCreate";
+            this.numUD_numberCreate.Size = new System.Drawing.Size(68, 20);
+            this.numUD_numberCreate.TabIndex = 9;
             // 
             // Form1
             // 
@@ -242,6 +276,8 @@ namespace CircleEditor
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            this.gb_randomGeneration.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -265,6 +301,9 @@ namespace CircleEditor
         private System.Windows.Forms.RadioButton rb_set_start;
         private System.Windows.Forms.GroupBox gb_Algorithms;
         private System.Windows.Forms.Button Test;
+        private System.Windows.Forms.Button bt_createRandom;
+        private System.Windows.Forms.GroupBox gb_randomGeneration;
+        private System.Windows.Forms.NumericUpDown numUD_numberCreate;
     }
 }
 
