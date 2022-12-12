@@ -254,6 +254,11 @@ namespace CircleEditor
             // numUD_numberCreate
             // 
             this.numUD_numberCreate.Location = new System.Drawing.Point(7, 18);
+            this.numUD_numberCreate.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
             this.numUD_numberCreate.Name = "numUD_numberCreate";
             this.numUD_numberCreate.Size = new System.Drawing.Size(68, 20);
             this.numUD_numberCreate.TabIndex = 9;

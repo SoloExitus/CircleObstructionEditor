@@ -187,17 +187,23 @@ namespace CircleEditor
                 if (this.empty())
                     return -1;
 
-                int minIndex = Queue[0];
-                float min = Vertexes[Queue[0]].m_F;
-                for(int i=1;i< Queue.Count; i++)
-                {
-                    if (Vertexes[Queue[i]].m_F < min)
-                    {
-                        minIndex = Queue[i];
-                        min = Vertexes[Queue[i]].m_F;
-                    }
-                }
-    
+                var (minValue, minIndex) = Queue.Select((x, i) => (Vertexes[x].m_F, x)).Min();
+
+                //int tminIndex = Queue[0];
+                //float tmin = Vertexes[Queue[0]].m_F;
+                //for (int i = 1; i < Queue.Count; i++)
+                //{
+                //    if (Vertexes[Queue[i]].m_F < tmin)
+                //    {
+                //        tminIndex = Queue[i];
+                //        tmin = Vertexes[Queue[i]].m_F;
+                //    }
+                //}
+
+                //int er;
+                //if (tmin != minValue)
+                //    er = 0;
+
                 Queue.Remove(minIndex);
                 return minIndex;
             }
@@ -812,7 +818,7 @@ namespace CircleEditor
             {
                 current = Q.pop(m_GraphVertexes);
                 if (current == 1)       // т.е. конечная точка
-                    break;
+                    return true;
 
                 m_GraphVertexes[current].m_isViewed = true;
 
@@ -841,9 +847,6 @@ namespace CircleEditor
 
             }
 
-            if (current == 1)
-                return true;
-
             return false;
         }
 
@@ -857,7 +860,6 @@ namespace CircleEditor
             if (result)
             {
                 List<int> vertexPathFromFinish = new List<int>();
-                List<int> edgesPath = new List<int>();
 
                 int currentVertexIndex = 1;
                 while (currentVertexIndex != -1)
