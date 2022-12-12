@@ -816,19 +816,27 @@ namespace CircleEditor
 
             while (!Q.empty())
             {
+                // Получем индекс рассматриваемой вершины из очереди с приорететами, как вершины с минимальной оценкой
+                // до конечной точки (как самая перспективная)
                 current = Q.pop(m_GraphVertexes);
-                if (current == 1)       // т.е. конечная точка
+
+                // Если данная вершина является конечной точкой, то заканчиваем
+                if (current == 1)
                     return true;
 
-                m_GraphVertexes[current].m_isViewed = true;
+                m_GraphVertexes[current].m_isViewed = true; // устанавливаем флаг, что данную вершину уже обработали
 
+                // Если вершина не начальная, то генерируем для препятствия, которому она принадлежит ребра перехода с остальными препятствмиями
+                // генерируем огибающие ребра между всеми вершинами принадлежащими данному препрятствию
                 if (current != 0)
-                {
                     GenerateEdgesAndVertexes(m_GraphVertexes[current].m_obstacleIndex);
-                }
-
+                
+                // Обрабатываем все вершины инцентедентные с текущей рассматриваемой.
+                // Устанавливаем ее как родителя для инцендентной, если пусть до нее через текущую оказался короче, чем уже имующийся 
+                // или если это вершина достигнута впервые
                 foreach (int edgeIndex in m_GraphVertexes[current].m_incidentEdgeIndexes)
                 {
+                    // Длина пути до индендентной вершины = длина пути до текущей + длина ребра
                     float pathLength = m_GraphVertexes[current].m_G + m_GraphEdges[edgeIndex].m_lenght;
 
                     int nextVertexIndex = m_GraphEdges[edgeIndex].m_firstVertexIndex == current ? m_GraphEdges[edgeIndex].m_secondVertexIndex : m_GraphEdges[edgeIndex].m_firstVertexIndex;
@@ -836,6 +844,8 @@ namespace CircleEditor
                     /*if (m_GraphVertexes[nextVertexIndex].m_isViewed && pathLength >= m_GraphVertexes[nextVertexIndex].m_G)
                         continue;*/
 
+                    // Если вершина достигнута впервые или наден более короткий путь
+                    // Устанавливаем текущую вершину как родителя и добавляем в очередь с приорететом, если она уже не там
                     if (m_GraphVertexes[nextVertexIndex].m_G == -1 || pathLength < m_GraphVertexes[nextVertexIndex].m_G)
                     {
                         m_GraphVertexes[nextVertexIndex].setParent(current, pathLength);
@@ -847,6 +857,7 @@ namespace CircleEditor
 
             }
 
+            // Не удалось достич конечной точки и стартовой
             return false;
         }
 
@@ -855,8 +866,12 @@ namespace CircleEditor
             if (!m_isStartEntered || !m_isEndEntered)
                 return;
 
+            // Запускаем алгорим А* 
             bool result = RunA();
 
+            // Если алгоритм А* закончился успешно
+            // Получим кротчайший путь из конечной вершины в начальную 
+            // и отобразим его
             if (result)
             {
                 List<int> vertexPathFromFinish = new List<int>();
@@ -865,7 +880,6 @@ namespace CircleEditor
                 while (currentVertexIndex != -1)
                 {
                     vertexPathFromFinish.Add(currentVertexIndex);
-                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[currentVertexIndex].m_position.X - 3, m_GraphVertexes[currentVertexIndex].m_position.Y - 3, 6, 6);
                     currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
                 }
 
@@ -897,25 +911,19 @@ namespace CircleEditor
             }
         }
 
-        private float ConvertradToDegrees(float rad)
+        // Перевод радианы в градусы
+        private float ToDegrees(float rad)
         {
             return rad * 180 / (float)Math.PI;
         }
 
-        private float convert(float rad)
-        {
-            if (rad < 0)
-            {
-                return (float)Math.Abs(rad);
-            }
-
-            return (float)Math.PI * 2 - rad;
-        }
-
+        // Отобразить найденный минимальный путь по индексам вершин
         private void DisplayPath(List<int> path)
         {
+            // Проходимся по всем вершинам, кроме последней - это начальная точка
             for(int i = 0; i < path.Count - 1; i++)
             {
+                // Отрисовываем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
                 if (m_GraphVertexes[path[i]].m_obstacleIndex == m_GraphVertexes[path[i + 1]].m_obstacleIndex && path[i] != 1 && path[i] != 0)
                 {
                     Circle currentObst = m_Obstructions[m_GraphVertexes[path[i]].m_obstacleIndex];
@@ -926,19 +934,21 @@ namespace CircleEditor
                     PointF firstVector = new PointF(m_GraphVertexes[path[i + 1]].m_position.X - center.X, m_GraphVertexes[path[i + 1]].m_position.Y - center.Y);
                     PointF secondVector = new PointF(m_GraphVertexes[path[i]].m_position.X - center.X, m_GraphVertexes[path[i]].m_position.Y - center.Y);
 
-                    float firstAngleRad = AngleBetweenVectors(ref firstVector, ref OX);
-                    float secondAngleRad = AngleBetweenVectors(ref secondVector, ref OX);
+                    float startAngleRad = AngleBetweenVectors(ref OX, ref firstVector);
+                    float sweepAngleRad = AngleBetweenVectors(ref firstVector, ref secondVector);
 
-                    
-
-                    float firstAngle = ConvertradToDegrees(convert(firstAngleRad));
-                    float secondAngle = ConvertradToDegrees(convert(secondAngleRad));
+                    float startAngle = ToDegrees(startAngleRad);
+                    float sweepAngle = ToDegrees(sweepAngleRad);
 
                     G.DrawArc(new Pen(Color.DarkRed, 3), center.X - currentObst.m_radius, center.Y - currentObst.m_radius,
-                        currentObst.m_radius * 2, currentObst.m_radius * 2, firstAngle, secondAngle - firstAngle);
+                        currentObst.m_radius * 2, currentObst.m_radius * 2, startAngle, sweepAngle);
                 }
                 else
-                    G.DrawLine(new Pen(Color.DarkRed), m_GraphVertexes[path[i+1]].m_position, m_GraphVertexes[path[i]].m_position);
+                {
+                    G.DrawLine(new Pen(Color.DarkRed), m_GraphVertexes[path[i + 1]].m_position, m_GraphVertexes[path[i]].m_position);
+                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[path[i]].m_position.X - 3, m_GraphVertexes[path[i]].m_position.Y - 3, 6, 6);
+                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[path[i + 1]].m_position.X - 3, m_GraphVertexes[path[i + 1]].m_position.Y - 3, 6, 6);
+                }
             }
 
             /*G.FillEllipse(m_startPointBrush, intern[0].m_first.X - 4, intern[0].m_first.Y - 4, 8, 8);
@@ -948,6 +958,7 @@ namespace CircleEditor
             G.FillEllipse(m_endPointBrush, intern[1].m_second.X - 4, intern[1].m_second.Y - 4, 8, 8);*/
         }
 
+        // Угол между двумя векторами в радианах от 0 до Pi
         private float AngleBetweenVectors(ref PointF f, ref PointF s)
         {
             return (float)Math.Atan2(f.X * s.Y - f.Y * s.X, f.X * s.X + f.Y * s.Y);
