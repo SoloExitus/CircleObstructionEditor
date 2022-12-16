@@ -34,12 +34,9 @@ namespace CircleEditor
 
         class Circle
         {
-
             public PointF m_center;
             public float m_radius = 0;
-            public List<int> m_ConnectWithCircles = new List<int>();
             public List<int> m_VertexIndexes = new List<int>();
-            //public List<int> m_EdgeIndexes = new List<int>();
             public bool m_isEdgesGenerated = false;
 
             public Circle()
@@ -109,7 +106,6 @@ namespace CircleEditor
             public float m_G = -1;
             public float m_H = -1;
             public float m_F = -1;
-            public bool m_isViewed = false;
 
             private float distance(PointF a, PointF b)
             {
@@ -153,8 +149,6 @@ namespace CircleEditor
                 m_lenght = lengnt;
             }
         }
-
-
 
 
         class PriorityQueue
@@ -234,10 +228,15 @@ namespace CircleEditor
         int m_creatingIndex = -1;
         int m_editingIndex = -1;
 
-        System.Drawing.SolidBrush m_obstructionsBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Blue);
+        Pen m_obstructionsPen = new Pen(Color.DeepSkyBlue, 2);
 
-        System.Drawing.SolidBrush m_startPointBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Green);
-        System.Drawing.SolidBrush m_endPointBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Red);
+        SolidBrush m_startPointBrush = new SolidBrush(Color.Green);
+        SolidBrush m_endPointBrush = new SolidBrush(Color.Red);
+
+        Pen m_DisplayPathPen = new Pen(Color.DarkRed, 2);
+
+        SolidBrush m_VertexBrush = new SolidBrush(Color.Blue);
+        float m_VertexDispalayDiameter = 6;
 
 
         public Form1()
@@ -271,7 +270,6 @@ namespace CircleEditor
         private void Draw()
         {
             DrawStartAndEndPoints();
-
             DrawObstructions();
         }
 
@@ -292,7 +290,7 @@ namespace CircleEditor
             {
                 PointF center = obstruction.m_center;
                 float radius = obstruction.m_radius;
-                G.DrawEllipse(new Pen(Color.DeepSkyBlue, 2), center.X - radius, center.Y - radius, radius * 2, radius * 2);
+                G.DrawEllipse(m_obstructionsPen, center.X - radius, center.Y - radius, radius * 2, radius * 2);
             }
         }
 
@@ -443,8 +441,6 @@ namespace CircleEditor
                         m_currentMode = Mode.Edit;
                         m_isUpdate = true;
                         break;
-
-
                 }
 
             }
@@ -637,47 +633,29 @@ namespace CircleEditor
 
             for(int i = 0; i < m_Obstructions.Count; i++)
             {
-                if (i == obstacleIndex)
+                if (i == obstacleIndex || m_Obstructions[i].m_isEdgesGenerated)
                     continue;
 
-                bool is_newLink = true;
-                for (int j = 0; j < m_Obstructions[obstacleIndex].m_ConnectWithCircles.Count; j++ )
+                List<Edge> surfing = surfingEdges(obstacleIndex, i);
+
+                foreach(Edge sEdge in surfing)
                 {
-                    if (i == j)
-                    {
-                        is_newLink = false;
-                        break;
-                    }
-                }
+                    int currentEdgeIndex = m_GraphEdges.Count;
 
-                m_Obstructions[obstacleIndex].m_ConnectWithCircles.Add(i);
+                    GraphVertex firstVertex = new GraphVertex(sEdge.m_first, obstacleIndex, m_endPoint);
+                    firstVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
+                    int firstVertexIndex = m_GraphVertexes.Count;
+                    m_GraphVertexes.Add(firstVertex);
+                    m_Obstructions[obstacleIndex].m_VertexIndexes.Add(firstVertexIndex);
 
-                if (is_newLink)
-                {
-                    List<Edge> surfing = surfingEdges(obstacleIndex, i);
+                    GraphVertex secondVertex = new GraphVertex(sEdge.m_second, i, m_endPoint);
+                    secondVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
+                    int secondVertexIndex = m_GraphVertexes.Count;
+                    m_GraphVertexes.Add(secondVertex);
+                    m_Obstructions[i].m_VertexIndexes.Add(secondVertexIndex);
 
-                    foreach(Edge sEdge in surfing)
-                    {
-                        int currentEdgeIndex = m_GraphEdges.Count;
-
-                        GraphVertex firstVertex = new GraphVertex(sEdge.m_first, obstacleIndex, m_endPoint);
-                        firstVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
-                        int firstVertexIndex = m_GraphVertexes.Count;
-                        m_GraphVertexes.Add(firstVertex);
-                        m_Obstructions[obstacleIndex].m_VertexIndexes.Add(firstVertexIndex);
-
-                        GraphVertex secondVertex = new GraphVertex(sEdge.m_second, i, m_endPoint);
-                        secondVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
-                        int secondVertexIndex = m_GraphVertexes.Count;
-                        m_GraphVertexes.Add(secondVertex);
-                        m_Obstructions[i].m_VertexIndexes.Add(secondVertexIndex);
-
-                        GraphEdge newEdgeFS = new GraphEdge(firstVertexIndex, secondVertexIndex, distance(firstVertex.m_position, secondVertex.m_position));
-                        m_GraphEdges.Add(newEdgeFS);
-
-                        //m_Obstructions[obstacleIndex].m_EdgeIndexes.Add(currentEdgeIndex);
-                        //m_Obstructions[i].m_EdgeIndexes.Add(currentEdgeIndex);
-                    }
+                    GraphEdge newEdgeFS = new GraphEdge(firstVertexIndex, secondVertexIndex, distance(firstVertex.m_position, secondVertex.m_position));
+                    m_GraphEdges.Add(newEdgeFS);
                 }
             }
 
@@ -687,7 +665,6 @@ namespace CircleEditor
             {
                 int currentEdgeIndex = m_GraphEdges.Count;
                 m_GraphEdges.Add(hEdge);
-                //m_Obstructions[obstacleIndex].m_EdgeIndexes.Add(currentEdgeIndex);
 
                 m_GraphVertexes[hEdge.m_firstVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
                 m_GraphVertexes[hEdge.m_secondVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
@@ -695,7 +672,6 @@ namespace CircleEditor
 
             m_Obstructions[obstacleIndex].m_isEdgesGenerated = true;
         }
-
 
 
         private void CreatStartAndEndVertexesAndEdges()
@@ -734,8 +710,6 @@ namespace CircleEditor
 
                         GraphVertex newVertex = new GraphVertex(e.m_second, i, m_endPoint);
 
-
-
                         newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
 
                         m_GraphVertexes[0].m_incidentEdgeIndexes.Add(newEdgeIndex);
@@ -748,8 +722,6 @@ namespace CircleEditor
                         GraphEdge newEdge = new GraphEdge(0, newVertexIndex, distance(m_startPoint, e.m_second));
 
                         m_GraphEdges.Add(newEdge);
-
-                        //m_Obstructions[i].m_EdgeIndexes.Add(newEdgeIndex);
                     }
                 }
 
@@ -778,8 +750,6 @@ namespace CircleEditor
                         GraphEdge newEdge = new GraphEdge(1, newVertexIndex, distance(m_endPoint, e.m_second));
 
                         m_GraphEdges.Add(newEdge);
-
-                        //m_Obstructions[i].m_EdgeIndexes.Add(newEdgeIndex);
                     }
                 }
 
@@ -796,9 +766,6 @@ namespace CircleEditor
             {
                 m_Obstructions[i].m_isEdgesGenerated = false;
                 m_Obstructions[i].m_VertexIndexes.Clear();
-                m_Obstructions[i].m_ConnectWithCircles.Clear();
-                //m_Obstructions[i].m_EdgeIndexes.Clear();
-
             }
         }
 
@@ -824,25 +791,22 @@ namespace CircleEditor
                 if (current == 1)
                     return true;
 
-                m_GraphVertexes[current].m_isViewed = true; // устанавливаем флаг, что данную вершину уже обработали
-
                 // Если вершина не начальная, то генерируем для препятствия, которому она принадлежит ребра перехода с остальными препятствмиями
                 // генерируем огибающие ребра между всеми вершинами принадлежащими данному препрятствию
                 if (current != 0)
                     GenerateEdgesAndVertexes(m_GraphVertexes[current].m_obstacleIndex);
-                
+
                 // Обрабатываем все вершины инцентедентные с текущей рассматриваемой.
-                // Устанавливаем ее как родителя для инцендентной, если пусть до нее через текущую оказался короче, чем уже имующийся 
+                // Устанавливаем ее как родителя для инцендентной, если пусть до нее через текущую оказался короче, чем уже имеющийся 
                 // или если это вершина достигнута впервые
                 foreach (int edgeIndex in m_GraphVertexes[current].m_incidentEdgeIndexes)
                 {
                     // Длина пути до индендентной вершины = длина пути до текущей + длина ребра
                     float pathLength = m_GraphVertexes[current].m_G + m_GraphEdges[edgeIndex].m_lenght;
 
-                    int nextVertexIndex = m_GraphEdges[edgeIndex].m_firstVertexIndex == current ? m_GraphEdges[edgeIndex].m_secondVertexIndex : m_GraphEdges[edgeIndex].m_firstVertexIndex;
-
-                    /*if (m_GraphVertexes[nextVertexIndex].m_isViewed && pathLength >= m_GraphVertexes[nextVertexIndex].m_G)
-                        continue;*/
+                    int nextVertexIndex = m_GraphEdges[edgeIndex].m_firstVertexIndex == current ? 
+                        m_GraphEdges[edgeIndex].m_secondVertexIndex : 
+                        m_GraphEdges[edgeIndex].m_firstVertexIndex;
 
                     // Если вершина достигнута впервые или наден более короткий путь
                     // Устанавливаем текущую вершину как родителя и добавляем в очередь с приорететом, если она уже не там
@@ -857,58 +821,8 @@ namespace CircleEditor
 
             }
 
-            // Не удалось достич конечной точки и стартовой
+            // Не удалось достич конечной точки из стартовой
             return false;
-        }
-
-        private void Test_Click(object sender, EventArgs e)
-        {
-            if (!m_isStartEntered || !m_isEndEntered)
-                return;
-
-            // Запускаем алгорим А* 
-            bool result = RunA();
-
-            // Если алгоритм А* закончился успешно
-            // Получим кротчайший путь из конечной вершины в начальную 
-            // и отобразим его
-            if (result)
-            {
-                List<int> vertexPathFromFinish = new List<int>();
-
-                int currentVertexIndex = 1;
-                while (currentVertexIndex != -1)
-                {
-                    vertexPathFromFinish.Add(currentVertexIndex);
-                    currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
-                }
-
-                /*for(int i = 1; i < vertexPathFromFinish.Count; i++)
-                {
-                    int firstVertexIndex = vertexPathFromFinish[i - 1];
-                    int secondVertexIndex = vertexPathFromFinish[i];
-
-                    int currentEdgeIndex = -1;
-                    foreach (int incidentEdgeIndex in m_GraphVertexes[firstVertexIndex].m_incidentEdgeIndexes)
-                    {
-                        if (((m_GraphEdges[incidentEdgeIndex].m_firstVertexIndex == firstVertexIndex) && (m_GraphEdges[incidentEdgeIndex].m_secondVertexIndex == secondVertexIndex)) ||
-                            ((m_GraphEdges[incidentEdgeIndex].m_secondVertexIndex == firstVertexIndex) && (m_GraphEdges[incidentEdgeIndex].m_firstVertexIndex == secondVertexIndex)))
-                        {
-                            currentEdgeIndex = incidentEdgeIndex;
-                            break;
-                        }
-
-                    }
-
-                    if (currentEdgeIndex != -1)
-                        edgesPath.Add(currentEdgeIndex);
-                    else
-                        throw new Exception();
-
-                }*/
-
-                DisplayPath(vertexPathFromFinish);
-            }
         }
 
         // Перевод радианы в градусы
@@ -923,39 +837,37 @@ namespace CircleEditor
             // Проходимся по всем вершинам, кроме последней - это начальная точка
             for(int i = 0; i < path.Count - 1; i++)
             {
+                int currVertexIndex = path[i];
+                int nextVertexIndex = path[i + 1];
+
                 // Отрисовываем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
-                if (m_GraphVertexes[path[i]].m_obstacleIndex == m_GraphVertexes[path[i + 1]].m_obstacleIndex && path[i] != 1 && path[i] != 0)
+                if (m_GraphVertexes[currVertexIndex].m_obstacleIndex == m_GraphVertexes[nextVertexIndex].m_obstacleIndex && currVertexIndex != 1 && currVertexIndex != 0)
                 {
-                    Circle currentObst = m_Obstructions[m_GraphVertexes[path[i]].m_obstacleIndex];
+                    Circle currentObst = m_Obstructions[m_GraphVertexes[currVertexIndex].m_obstacleIndex];
                     PointF center = currentObst.m_center;
 
                     PointF OX = new PointF(1, 0);
 
-                    PointF firstVector = new PointF(m_GraphVertexes[path[i + 1]].m_position.X - center.X, m_GraphVertexes[path[i + 1]].m_position.Y - center.Y);
-                    PointF secondVector = new PointF(m_GraphVertexes[path[i]].m_position.X - center.X, m_GraphVertexes[path[i]].m_position.Y - center.Y);
+                    PointF firstVector = new PointF(m_GraphVertexes[nextVertexIndex].m_position.X - center.X, m_GraphVertexes[nextVertexIndex].m_position.Y - center.Y);
+                    PointF secondVector = new PointF(m_GraphVertexes[currVertexIndex].m_position.X - center.X, m_GraphVertexes[currVertexIndex].m_position.Y - center.Y);
 
                     float startAngleRad = AngleBetweenVectors(ref OX, ref firstVector);
                     float sweepAngleRad = AngleBetweenVectors(ref firstVector, ref secondVector);
 
                     float startAngle = ToDegrees(startAngleRad);
                     float sweepAngle = ToDegrees(sweepAngleRad);
-
-                    G.DrawArc(new Pen(Color.DarkRed, 3), center.X - currentObst.m_radius, center.Y - currentObst.m_radius,
+                    
+                    G.DrawArc(m_DisplayPathPen, center.X - currentObst.m_radius, center.Y - currentObst.m_radius,
                         currentObst.m_radius * 2, currentObst.m_radius * 2, startAngle, sweepAngle);
                 }
                 else
                 {
-                    G.DrawLine(new Pen(Color.DarkRed), m_GraphVertexes[path[i + 1]].m_position, m_GraphVertexes[path[i]].m_position);
-                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[path[i]].m_position.X - 3, m_GraphVertexes[path[i]].m_position.Y - 3, 6, 6);
-                    G.FillEllipse(new SolidBrush(Color.Blue), m_GraphVertexes[path[i + 1]].m_position.X - 3, m_GraphVertexes[path[i + 1]].m_position.Y - 3, 6, 6);
+                    G.DrawLine(m_DisplayPathPen, m_GraphVertexes[currVertexIndex].m_position, m_GraphVertexes[nextVertexIndex].m_position);
+                    G.FillEllipse(m_VertexBrush, m_GraphVertexes[currVertexIndex].m_position.X - 3, m_GraphVertexes[currVertexIndex].m_position.Y - m_VertexDispalayDiameter/2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                    G.FillEllipse(m_VertexBrush, m_GraphVertexes[nextVertexIndex].m_position.X - 3, m_GraphVertexes[nextVertexIndex].m_position.Y - m_VertexDispalayDiameter/2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
                 }
             }
 
-            /*G.FillEllipse(m_startPointBrush, intern[0].m_first.X - 4, intern[0].m_first.Y - 4, 8, 8);
-            G.FillEllipse(m_startPointBrush, intern[0].m_second.X - 4, intern[0].m_second.Y - 4, 8, 8);
-
-            G.FillEllipse(m_endPointBrush, intern[1].m_first.X - 4, intern[1].m_first.Y - 4, 8, 8);
-            G.FillEllipse(m_endPointBrush, intern[1].m_second.X - 4, intern[1].m_second.Y - 4, 8, 8);*/
         }
 
         // Угол между двумя векторами в радианах от 0 до Pi
@@ -983,7 +895,14 @@ namespace CircleEditor
 
         private GraphEdge createHuggingEdge(int obstacleIndex, int firstVertexIndex, int secondVertexIndex)
         {
-            GraphEdge edge = new GraphEdge(firstVertexIndex, secondVertexIndex, calculateHuggingEdgeLenght(m_Obstructions[obstacleIndex].m_center, m_Obstructions[obstacleIndex].m_radius, m_GraphVertexes[firstVertexIndex].m_position, m_GraphVertexes[secondVertexIndex].m_position));
+            float edgeLenght = calculateHuggingEdgeLenght(
+                m_Obstructions[obstacleIndex].m_center, 
+                m_Obstructions[obstacleIndex].m_radius, 
+                m_GraphVertexes[firstVertexIndex].m_position, 
+                m_GraphVertexes[secondVertexIndex].m_position
+                );
+
+            GraphEdge edge = new GraphEdge(firstVertexIndex, secondVertexIndex, edgeLenght);
 
             return edge;
         }
@@ -1012,19 +931,9 @@ namespace CircleEditor
                     continue;
 
                 if (is_Block(m_Obstructions[i], edgeStart, edgeEnd))
-                {
                     return true;
-                }
+                
             }
-
-            /*Pen pen = new Pen(Color.Green);
-
-            if (block)
-            {
-                pen = new Pen(Color.Red);
-            }
-
-            G.DrawLine(pen, m_startPoint, m_endPoint);*/
 
             return false;
         }
@@ -1103,7 +1012,6 @@ namespace CircleEditor
             VectAB.X /= vectABNorm;
             VectAB.Y /= vectABNorm;
 
-
             PointF G = new PointF(centerA.X + rA* VectAB.X, centerA.Y + rA* VectAB.Y);
 
             PointF H = new PointF(centerB.X + rB* (-VectAB.X), centerB.Y + rB* (-VectAB.Y));
@@ -1120,7 +1028,6 @@ namespace CircleEditor
             
             return list;
         }
-
 
         private List<Edge> externalBitangents(PointF centerA, float rA, PointF centerB, float rB)
         {
@@ -1142,7 +1049,6 @@ namespace CircleEditor
 
             VectBL.X /= vectBLNorm;
             VectBL.Y /= vectBLNorm;
-
 
             PointF G = new PointF(centerA.X + rA * VectBL.X, centerA.Y + rA * VectBL.Y);
 
@@ -1204,6 +1110,56 @@ namespace CircleEditor
             }
 
             m_isUpdate = true;
+        }
+
+        private void bt_runAstar_Click(object sender, EventArgs e)
+        {
+            if (!m_isStartEntered || !m_isEndEntered)
+                return;
+
+            // Запускаем алгорим А* 
+            bool result = RunA();
+
+            // Если алгоритм А* закончился успешно
+            // Получим кротчайший путь из конечной вершины в начальную 
+            // и отобразим его
+            if (result)
+            {
+                List<int> vertexPathFromFinish = new List<int>();
+
+                int currentVertexIndex = 1;
+                while (currentVertexIndex != -1)
+                {
+                    vertexPathFromFinish.Add(currentVertexIndex);
+                    currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
+                }
+
+                DisplayPath(vertexPathFromFinish);
+            }
+        }
+
+
+        private void btn_DrawGraph_Click(object sender, EventArgs e)
+        {
+            ClearGraph();
+
+            CreatStartAndEndVertexesAndEdges();
+
+            for (int i = 0; i < m_Obstructions.Count; i++)
+            {
+                GenerateEdgesAndVertexes(i);
+            }
+
+            foreach (GraphEdge edge in m_GraphEdges)
+            {
+                if (m_GraphVertexes[edge.m_firstVertexIndex].m_obstacleIndex == m_GraphVertexes[edge.m_secondVertexIndex].m_obstacleIndex)
+                    continue;
+
+                G.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - 3, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                G.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - 3, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+
+                G.DrawLine(new Pen(Color.Gray, 2), m_GraphVertexes[edge.m_firstVertexIndex].m_position, m_GraphVertexes[edge.m_secondVertexIndex].m_position);
+            }
         }
     }
 }
