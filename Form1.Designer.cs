@@ -51,12 +51,14 @@ namespace CircleEditor
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
+            this.pb_ViewPort = new System.Windows.Forms.PictureBox();
             this.groupBox1.SuspendLayout();
             this.gb_randomGeneration.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).BeginInit();
             this.gb_Algorithms.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_ViewPort)).BeginInit();
             this.SuspendLayout();
             // 
             // btn_NewMap
@@ -76,9 +78,9 @@ namespace CircleEditor
             this.groupBox1.Controls.Add(this.gb_Algorithms);
             this.groupBox1.Controls.Add(this.groupBox3);
             this.groupBox1.Controls.Add(this.groupBox2);
-            this.groupBox1.Location = new System.Drawing.Point(735, 12);
+            this.groupBox1.Location = new System.Drawing.Point(730, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(168, 362);
+            this.groupBox1.Size = new System.Drawing.Size(163, 362);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Control";
@@ -133,7 +135,7 @@ namespace CircleEditor
             this.btn_DrawGraph.Name = "btn_DrawGraph";
             this.btn_DrawGraph.Size = new System.Drawing.Size(69, 23);
             this.btn_DrawGraph.TabIndex = 2;
-            this.btn_DrawGraph.Text = "Graph";
+            this.btn_DrawGraph.Text = "Full Graph";
             this.btn_DrawGraph.UseVisualStyleBackColor = true;
             this.btn_DrawGraph.Click += new System.EventHandler(this.btn_DrawGraph_Click);
             // 
@@ -271,19 +273,33 @@ namespace CircleEditor
             this.timer1.Interval = 50;
             this.timer1.Tick += new System.EventHandler(this.timer1_Tick);
             // 
+            // pb_ViewPort
+            // 
+            this.pb_ViewPort.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pb_ViewPort.Location = new System.Drawing.Point(0, 0);
+            this.pb_ViewPort.MinimumSize = new System.Drawing.Size(20, 20);
+            this.pb_ViewPort.Name = "pb_ViewPort";
+            this.pb_ViewPort.Size = new System.Drawing.Size(720, 720);
+            this.pb_ViewPort.TabIndex = 2;
+            this.pb_ViewPort.TabStop = false;
+            this.pb_ViewPort.SizeChanged += new System.EventHandler(this.pb_ViewPort_SizeChanged);
+            this.pb_ViewPort.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseDown);
+            this.pb_ViewPort.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseMove);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(915, 504);
+            this.ClientSize = new System.Drawing.Size(893, 766);
             this.Controls.Add(this.groupBox1);
+            this.Controls.Add(this.pb_ViewPort);
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.Load += new System.EventHandler(this.Form1_Load);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseMove);
             this.groupBox1.ResumeLayout(false);
             this.gb_randomGeneration.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).EndInit();
@@ -291,6 +307,7 @@ namespace CircleEditor
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pb_ViewPort)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -318,6 +335,7 @@ namespace CircleEditor
         private System.Windows.Forms.GroupBox gb_randomGeneration;
         private System.Windows.Forms.NumericUpDown numUD_numberCreate;
         private System.Windows.Forms.Button btn_DrawGraph;
+        private System.Windows.Forms.PictureBox pb_ViewPort;
     }
 }
 
