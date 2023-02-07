@@ -52,6 +52,7 @@ namespace CircleEditor
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.pb_ViewPort = new System.Windows.Forms.PictureBox();
+            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.gb_randomGeneration.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).BeginInit();
@@ -80,7 +81,7 @@ namespace CircleEditor
             this.groupBox1.Controls.Add(this.groupBox2);
             this.groupBox1.Location = new System.Drawing.Point(730, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(163, 362);
+            this.groupBox1.Size = new System.Drawing.Size(163, 351);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Control";
@@ -120,18 +121,19 @@ namespace CircleEditor
             // 
             // gb_Algorithms
             // 
+            this.gb_Algorithms.Controls.Add(this.cb_DebugMode);
             this.gb_Algorithms.Controls.Add(this.btn_DrawGraph);
             this.gb_Algorithms.Controls.Add(this.bt_runAstar);
             this.gb_Algorithms.Location = new System.Drawing.Point(7, 268);
             this.gb_Algorithms.Name = "gb_Algorithms";
-            this.gb_Algorithms.Size = new System.Drawing.Size(147, 82);
+            this.gb_Algorithms.Size = new System.Drawing.Size(151, 76);
             this.gb_Algorithms.TabIndex = 3;
             this.gb_Algorithms.TabStop = false;
             this.gb_Algorithms.Text = "Algorithms";
             // 
             // btn_DrawGraph
             // 
-            this.btn_DrawGraph.Location = new System.Drawing.Point(7, 19);
+            this.btn_DrawGraph.Location = new System.Drawing.Point(79, 42);
             this.btn_DrawGraph.Name = "btn_DrawGraph";
             this.btn_DrawGraph.Size = new System.Drawing.Size(69, 23);
             this.btn_DrawGraph.TabIndex = 2;
@@ -141,7 +143,7 @@ namespace CircleEditor
             // 
             // bt_runAstar
             // 
-            this.bt_runAstar.Location = new System.Drawing.Point(7, 48);
+            this.bt_runAstar.Location = new System.Drawing.Point(4, 42);
             this.bt_runAstar.Name = "bt_runAstar";
             this.bt_runAstar.Size = new System.Drawing.Size(69, 23);
             this.bt_runAstar.TabIndex = 0;
@@ -288,6 +290,17 @@ namespace CircleEditor
             this.pb_ViewPort.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseDown);
             this.pb_ViewPort.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseMove);
             // 
+            // cb_DebugMode
+            // 
+            this.cb_DebugMode.AutoSize = true;
+            this.cb_DebugMode.Location = new System.Drawing.Point(6, 19);
+            this.cb_DebugMode.Name = "cb_DebugMode";
+            this.cb_DebugMode.Size = new System.Drawing.Size(58, 17);
+            this.cb_DebugMode.TabIndex = 3;
+            this.cb_DebugMode.Text = "Debug";
+            this.cb_DebugMode.UseVisualStyleBackColor = true;
+            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -304,6 +317,7 @@ namespace CircleEditor
             this.gb_randomGeneration.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).EndInit();
             this.gb_Algorithms.ResumeLayout(false);
+            this.gb_Algorithms.PerformLayout();
             this.groupBox3.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.groupBox2.PerformLayout();
@@ -336,6 +350,7 @@ namespace CircleEditor
         private System.Windows.Forms.NumericUpDown numUD_numberCreate;
         private System.Windows.Forms.Button btn_DrawGraph;
         private System.Windows.Forms.PictureBox pb_ViewPort;
+        private System.Windows.Forms.CheckBox cb_DebugMode;
     }
 }
 
