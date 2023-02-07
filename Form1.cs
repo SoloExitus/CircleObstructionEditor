@@ -1046,60 +1046,55 @@ namespace CircleEditor
 
         private void CreatStartAndEndVertexesAndEdges()
         {
-            // index 0 - start
-            GraphVertex startVertex = new GraphVertex(m_startPoint, -1, m_endPoint);
-            m_GraphVertexes.Add(startVertex);
-            startVertex.setParent(-1, 0);
-
-            // index 1 - finish
-            GraphVertex endVertex = new GraphVertex(m_endPoint, -1, m_endPoint);
-            m_GraphVertexes.Add(endVertex);
-
-            // ребро между начальной и конечной точками
-            if (!IsObstructionsBlockEdge(new Edge(m_startPoint, m_endPoint), -1, -1))
+            if (m_isStartEntered)
             {
-                int startToEndIndex = m_GraphEdges.Count;
-                GraphEdge startToEnd = new GraphEdge(0, 1, BaseMath.Distance(ref m_startPoint, ref m_endPoint));
-                m_GraphEdges.Add(startToEnd);
-
-                m_GraphVertexes[0].m_incidentEdgeIndexes.Add(startToEndIndex);
-                m_GraphVertexes[1].m_incidentEdgeIndexes.Add(startToEndIndex);
-
+                // index 0 - start
+                GraphVertex startVertex = new GraphVertex(m_startPoint, -1, m_endPoint);
+                m_GraphVertexes.Add(startVertex);
+                startVertex.setParent(-1, 0);
             }
 
-
-            for (int i = 0; i < m_GraphObstructions.Count; i++)
+            if (m_isEndEntered)
             {
-                List<Edge> edges = internalBitangents(m_startPoint, 0, m_GraphObstructions[i].m_center, m_GraphObstructions[i].m_radius);
+                // index 1 - finish
+                GraphVertex endVertex = new GraphVertex(m_endPoint, -1, m_endPoint);
+                m_GraphVertexes.Add(endVertex);
 
-                foreach (Edge e in edges)
+                GenerateEdgesFromPointToAll(1);
+            }
+
+            if (m_isStartEntered)
+            {
+                GenerateEdgesFromPointToAll(0);
+            }
+
+            if (m_isEndEntered)
+            {
+                GenerateEdgesFromPointToAll(1);
+            }
+
+            if (m_isStartEntered && m_isEndEntered)
+            {
+                // ребро между начальной и конечной точками
+                if (!IsObstructionsBlockEdge(new Edge(m_startPoint, m_endPoint), -1, -1))
                 {
-                    if (!IsObstructionsBlockEdge(e, -1, i))
-                    {
-                        int newEdgeIndex = m_GraphEdges.Count;
+                    int startToEndIndex = m_GraphEdges.Count;
+                    GraphEdge startToEnd = new GraphEdge(0, 1, BaseMath.Distance(ref m_startPoint, ref m_endPoint));
+                    m_GraphEdges.Add(startToEnd);
 
-                        GraphVertex newVertex = new GraphVertex(e.m_second, i, m_endPoint);
-
-                        newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
-
-                        m_GraphVertexes[0].m_incidentEdgeIndexes.Add(newEdgeIndex);
-
-                        int newVertexIndex = m_GraphVertexes.Count;
-                        m_GraphVertexes.Add(newVertex);
-
-                        m_GraphObstructions[i].m_VertexIndexes.Add(newVertexIndex);
-
-                        GraphEdge newEdge = new GraphEdge(0, newVertexIndex, BaseMath.Distance(ref m_startPoint, ref e.m_second));
-
-                        m_GraphEdges.Add(newEdge);
-                    }
+                    m_GraphVertexes[0].m_incidentEdgeIndexes.Add(startToEndIndex);
+                    m_GraphVertexes[1].m_incidentEdgeIndexes.Add(startToEndIndex);
                 }
-
             }
+        }
 
+        // Только для начальной и конечной точки маршрута
+        private void GenerateEdgesFromPointToAll(int vertexIndex)
+        {
+            PointF point = m_GraphVertexes[vertexIndex].m_position;
             for (int i = 0; i < m_GraphObstructions.Count; i++)
             {
-                List<Edge> edges = internalBitangents(m_endPoint, 0, m_GraphObstructions[i].m_center, m_GraphObstructions[i].m_radius);
+                List<Edge> edges = InternalBitangents(point, 0, m_GraphObstructions[i].m_center, m_GraphObstructions[i].m_radius);
 
                 foreach (Edge e in edges)
                 {
@@ -1107,17 +1102,17 @@ namespace CircleEditor
                     {
                         int newEdgeIndex = m_GraphEdges.Count;
 
-                        GraphVertex newVertex = new GraphVertex(e.m_second, i, m_endPoint);
+                        GraphVertex newVertex = new GraphVertex(e.m_second, i, point);
                         newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
 
-                        m_GraphVertexes[1].m_incidentEdgeIndexes.Add(newEdgeIndex);
+                        m_GraphVertexes[vertexIndex].m_incidentEdgeIndexes.Add(newEdgeIndex);
 
                         int newVertexIndex = m_GraphVertexes.Count;
                         m_GraphVertexes.Add(newVertex);
 
                         m_GraphObstructions[i].m_VertexIndexes.Add(newVertexIndex);
 
-                        GraphEdge newEdge = new GraphEdge(1, newVertexIndex, BaseMath.Distance(ref m_endPoint, ref e.m_second));
+                        GraphEdge newEdge = new GraphEdge(vertexIndex, newVertexIndex, BaseMath.Distance(ref point, ref e.m_second));
 
                         m_GraphEdges.Add(newEdge);
                     }
@@ -1172,7 +1167,7 @@ namespace CircleEditor
             m_GraphObstructions[obstacleIndex].m_isEdgesGenerated = true;
         }
 
-        private List<Edge> internalBitangents(PointF centerA, float rA, PointF centerB, float rB)
+        private List<Edge> InternalBitangents(PointF centerA, float rA, PointF centerB, float rB)
         {
             float Q = (float)Math.Acos((double)(rA + rB) / BaseMath.Distance(ref centerA, ref centerB));
 
@@ -1247,7 +1242,7 @@ namespace CircleEditor
             // Тогда генерируем внутренние касательные
             if (intersectIndex == -1)
             {
-                List<Edge> internalBit = internalBitangents(centerA, rA, centerB, rB);
+                List<Edge> internalBit = InternalBitangents(centerA, rA, centerB, rB);
 
                 for (int i = 0; i < internalBit.Count; i++)
                 {
