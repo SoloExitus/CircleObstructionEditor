@@ -2,16 +2,12 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Configuration;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Permissions;
 using System.Windows.Forms;
-using System.Windows.Forms.VisualStyles;
 using System.Xml.Linq;
-
-
+using System.Diagnostics;
+using System.Data.SqlTypes;
 
 namespace CircleEditor
 {
@@ -150,7 +146,7 @@ namespace CircleEditor
 
             Random rnd = new Random();
 
-            for (int i = 0; i < createNum; i++)
+            for (int i = 0; i < createNum; ++i)
             {
                 Circle newObstruct;
                 
@@ -192,6 +188,46 @@ namespace CircleEditor
             Editor.SetDebugMode(cb_DebugMode.Checked);
             m_isUpdate = true;
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Stopwatch sw = new Stopwatch();
+            int count = 40;
+            sw.Start();
+
+            for(int i =0; i < count; ++i)
+            {
+                Editor.GenerateFullGraph();
+                Editor.RunA();
+                Editor.ClearGraph();
+            }
+
+            sw.Stop();
+
+            double res = sw.ElapsedMilliseconds / count;
+
+            Console.WriteLine($"Full graph generate time: {res}");
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Stopwatch sw = new Stopwatch();
+            int count = 40;
+            sw.Start();
+
+            for (int i = 0; i < count; ++i)
+            {
+                Editor.RunA();
+                Editor.ClearGraph();
+            }
+
+            sw.Stop();
+
+            double res = sw.ElapsedMilliseconds / count;
+
+            Console.WriteLine($"Step by step graph generate time: {res}");
+        }
     }
 
     // Базовые математические функции
@@ -225,7 +261,7 @@ namespace CircleEditor
         }
 
         // Поворот точки p вокруг центра с на угол angle в радианах
-        public static PointF rotatePoint(ref PointF p, ref PointF c, float angle)
+        public static PointF RotatePoint(ref PointF p, ref PointF c, float angle)
         {
             float nX = (float)(c.X + (p.X - c.X) * Math.Cos((double)angle) - (p.Y - c.Y) * Math.Sin((double)angle));
             float nY = (float)(c.Y + (p.X - c.X) * Math.Sin((double)angle) + (p.Y - c.Y) * Math.Cos((double)angle));
@@ -266,6 +302,7 @@ namespace CircleEditor
         public List<int> m_IntersectCircleIndexes = new List<int>();
         public List<PairPoint> m_Entersections = new List<PairPoint>();
         public bool m_isEdgesGenerated = false;
+        public bool m_isBlocked = false;
 
         public Circle()
         {
@@ -345,7 +382,6 @@ namespace CircleEditor
             m_parentVertexIndex = parentIndex;
             m_F = m_G + m_H;
         }
-
     }
 
     class GraphEdge
@@ -354,7 +390,6 @@ namespace CircleEditor
         public int m_secondVertexIndex;
         public float m_lenght;
 
-
         public GraphEdge(int firstVertexIndex, int secondVertexIndex, float lengnt)
         {
             m_firstVertexIndex = firstVertexIndex;
@@ -362,7 +397,6 @@ namespace CircleEditor
             m_lenght = lengnt;
         }
     }
-
 
     class PriorityQueue
     {
@@ -375,12 +409,11 @@ namespace CircleEditor
 
         public bool have(int index)
         {
-            for (int i = 0; i < Queue.Count; i++)
+            for (int i = 0; i < Queue.Count; ++i)
             {
                 if (Queue[i] == index)
                     return true;
             }
-
             return false;
         }
 
@@ -398,7 +431,7 @@ namespace CircleEditor
 
             //int tminIndex = Queue[0];
             //float tmin = Vertexes[Queue[0]].m_F;
-            //for (int i = 1; i < Queue.Count; i++)
+            //for (int i = 1; i < Queue.Count; ++i)
             //{
             //    if (Vertexes[Queue[i]].m_F < tmin)
             //    {
@@ -452,7 +485,7 @@ namespace CircleEditor
 
         List<Circle> m_Obstructions = new List<Circle>();
 
-        List<Circle> m_GraphObstructions = new List<Circle>();
+        List<Circle> m_GraphObstructions;
 
         List<GraphVertex> m_GraphVertexes = new List<GraphVertex>();
         List<GraphEdge> m_GraphEdges = new List<GraphEdge>();
@@ -465,7 +498,7 @@ namespace CircleEditor
 
         bool m_isDebugMode = false;
 
-        List<int> path = new List<int>();
+        List<int> m_ShortesPathVertexIndexes = new List<int>();
 
         public CircleEditor() { }
 
@@ -479,84 +512,88 @@ namespace CircleEditor
             m_isDebugMode = is_debugMode;
         }
 
-        private void ObstaclesProcess()
+        private void ObstaclesProcess(ref List<Circle> map)
         {
-            m_GraphObstructions.Clear();
+            m_GraphObstructions = map;
 
-            for(int i =0; i < m_Obstructions.Count; i++)
+            for(int i = 0; i < m_GraphObstructions.Count; ++i)
             {
                 List<int> intersections = new List<int>();
 
                 bool include = true;
 
-                for (int j = 0; j < m_GraphObstructions.Count ;j++)
+                for (int j = 0; j < m_GraphObstructions.Count; ++j)
                 {
-                    int res = CircleInteraction(m_Obstructions[i], m_GraphObstructions[j]);
+                    if (j == i)
+                        continue;
+
+                    int res = CircleInteraction(m_GraphObstructions[i], m_GraphObstructions[j]);
 
                     if (res == 0)
                     {
                         include = false;
+                        m_GraphObstructions[i].m_isBlocked = true;
                         break;
                     }
 
                     if (res == 1)
                         intersections.Add(j);
-                    
                 }
 
                 if (include)
                 {
-                    AddGraphObstructions(m_Obstructions[i], intersections);
+                    FillIntersectionsForObstructions(i, intersections);
                 }
             }
         }
 
-        private void AddGraphObstructions(Circle obs, List<int> intersect)
+        private void FillIntersectionsForObstructions(int obsIndex, List<int> intersect)
         {
-            int obsIndex = m_GraphObstructions.Count;
-            m_GraphObstructions.Add(obs);
-
-            for (int i = 0; i < intersect.Count; i++)
+            Circle obs = m_GraphObstructions[obsIndex];
+            for (int i = 0; i < intersect.Count; ++i)
             {
                 int interIndex = intersect[i];
+                Circle intersectObs = m_GraphObstructions[interIndex];
+
                 float sqrObsRad = obs.m_radius * obs.m_radius;
-                float sqrInterIRad = m_GraphObstructions[interIndex].m_radius * m_GraphObstructions[interIndex].m_radius;
-                float dist = BaseMath.Distance(ref obs.m_center, ref m_GraphObstructions[interIndex].m_center);
+                float sqrInterIRad = intersectObs.m_radius * intersectObs.m_radius;
+                float dist = BaseMath.Distance(ref obs.m_center, ref intersectObs.m_center);
                 float sqrDist = dist * dist;
                 float a = (sqrObsRad - sqrInterIRad + sqrDist) / (2 * dist);
 
                 float teta = (float)Math.Acos( a / obs.m_radius);
 
-                PointF vecAB = new PointF(m_GraphObstructions[interIndex].m_center.X - obs.m_center.X, m_GraphObstructions[interIndex].m_center.Y - obs.m_center.Y);
+                PointF vecAB = new PointF(intersectObs.m_center.X - obs.m_center.X, intersectObs.m_center.Y - obs.m_center.Y);
                 float vecABLenght = BaseMath.VectorLenght(ref vecAB);
                 vecAB.X /= vecABLenght;
                 vecAB.Y /= vecABLenght;
+
                 PointF c = obs.m_center;
                 c.X += vecAB.X * obs.m_radius;
                 c.Y += vecAB.Y * obs.m_radius;
 
-                PointF first = BaseMath.rotatePoint(ref c, ref obs.m_center, teta);
-                PointF second = BaseMath.rotatePoint(ref c, ref obs.m_center, -teta);
+                PointF first = BaseMath.RotatePoint(ref c, ref obs.m_center, teta);
+                PointF second = BaseMath.RotatePoint(ref c, ref obs.m_center, -teta);
 
-                m_GraphObstructions[obsIndex].m_Entersections.Add(new PairPoint(first, second));
-                m_GraphObstructions[interIndex].m_Entersections.Add(new PairPoint(first, second));
+                obs.m_Entersections.Add(new PairPoint(first, second));
+                intersectObs.m_Entersections.Add(new PairPoint(first, second));
 
-                m_GraphObstructions[obsIndex].m_IntersectCircleIndexes.Add(interIndex);
-                m_GraphObstructions[interIndex].m_IntersectCircleIndexes.Add(obsIndex);
+                obs.m_IntersectCircleIndexes.Add(interIndex);
+                intersectObs.m_IntersectCircleIndexes.Add(obsIndex);
             }
         }
 
-        private int CircleInteraction( Circle fc, Circle sc)
+        private int CircleInteraction(in Circle fc, in Circle sc)
         {
-            float dist = BaseMath.Distance(ref fc.m_center, ref sc.m_center);
+            float centerDist = BaseMath.Distance(ref fc.m_center, ref sc.m_center);
             float sumRadius = (fc.m_radius + sc.m_radius);
 
             // Не пересекаются
-            if (dist > sumRadius)
+            if (centerDist > sumRadius)
                 return -1;
 
-            // Один содержит в себе другой или они совпадают
-            if ( dist == 0 && fc.m_radius == sc.m_radius )
+            // sc полностью содержит fc
+            if (centerDist + fc.m_radius <= sc.m_radius)
                 return 0;
 
             return 1; // пересекаются
@@ -716,7 +753,7 @@ namespace CircleEditor
 
             if (m_isDebugMode)
             {
-                DrawFullGraph(ref g);
+                DrawGraph(ref g);
                 DrawIntersection(ref g);
             }
 
@@ -731,11 +768,11 @@ namespace CircleEditor
             if (m_isFullGraphGenerated)
                 return;
 
-            ObstaclesProcess();
+            ObstaclesProcess(ref m_Obstructions);
 
             CreatStartAndEndVertexesAndEdges();
 
-            for (int i = 0; i < m_GraphObstructions.Count; i++)
+            for (int i = 0; i < m_GraphObstructions.Count; ++i)
             {
                 GenerateEdgesAndVertexes(i);
             }
@@ -746,10 +783,10 @@ namespace CircleEditor
         private void DisplayPath(ref Graphics g)
         {
             // Проходимся по всем вершинам, кроме последней - это начальная точка
-            for (int i = 0; i < path.Count - 1; i++)
+            for (int i = 0; i < m_ShortesPathVertexIndexes.Count - 1; ++i)
             {
-                int currVertexIndex = path[i];
-                int nextVertexIndex = path[i + 1];
+                int currVertexIndex = m_ShortesPathVertexIndexes[i];
+                int nextVertexIndex = m_ShortesPathVertexIndexes[i + 1];
 
                 // Отрисовываем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
                 if (m_GraphVertexes[currVertexIndex].m_obstacleIndex == m_GraphVertexes[nextVertexIndex].m_obstacleIndex && currVertexIndex != 1 && currVertexIndex != 0)
@@ -801,7 +838,7 @@ namespace CircleEditor
             }
         }
 
-        private void DrawFullGraph(ref Graphics g)
+        private void DrawGraph(ref Graphics g)
         {
             foreach (GraphEdge edge in m_GraphEdges)
             {
@@ -937,7 +974,7 @@ namespace CircleEditor
             if (!m_isStartEntered || !m_isEndEntered)
                 return false;
 
-            ObstaclesProcess();
+            ObstaclesProcess(ref m_Obstructions);
 
             PriorityQueue Q = new PriorityQueue();
 
@@ -985,7 +1022,6 @@ namespace CircleEditor
                             Q.push(nextVertexIndex);
                     }
                 }
-
             }
 
             // Не удалось достич конечной точки из стартовой
@@ -997,28 +1033,27 @@ namespace CircleEditor
             int currentVertexIndex = 1;
             while (currentVertexIndex != -1)
             {
-                path.Add(currentVertexIndex);
+                m_ShortesPathVertexIndexes.Add(currentVertexIndex);
                 currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
             }
 
             m_isPathGenerated = true;
         }
 
-        private void ClearGraph()
+        public void ClearGraph()
         {
             m_GraphVertexes.Clear();
             m_GraphEdges.Clear();
 
-            m_GraphObstructions.Clear();
-
-            path.Clear();
+            m_ShortesPathVertexIndexes.Clear();
 
             m_isFullGraphGenerated = false;
             m_isPathGenerated = false;
 
-            for (int i = 0; i < m_Obstructions.Count; i++)
+            for (int i = 0; i < m_Obstructions.Count; ++i)
             {
                 m_Obstructions[i].m_isEdgesGenerated = false;
+                m_Obstructions[i].m_isBlocked = false;
                 m_Obstructions[i].m_VertexIndexes.Clear();
                 m_Obstructions[i].m_Entersections.Clear();
                 m_Obstructions[i].m_IntersectCircleIndexes.Clear();
@@ -1032,7 +1067,7 @@ namespace CircleEditor
             int index = -1;
             float minDistToObstruction = float.MaxValue;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < count; ++i)
             {
                 float dist = BaseMath.Distance(ref m_Obstructions[i].m_center, ref location);
                 if (dist < minDistToObstruction && dist < m_Obstructions[i].m_radius)
@@ -1048,7 +1083,7 @@ namespace CircleEditor
         {
             if (m_isStartEntered)
             {
-                // index 0 - start
+                // index 0 - Начальная точка
                 GraphVertex startVertex = new GraphVertex(m_startPoint, -1, m_endPoint);
                 m_GraphVertexes.Add(startVertex);
                 startVertex.setParent(-1, 0);
@@ -1056,7 +1091,7 @@ namespace CircleEditor
 
             if (m_isEndEntered)
             {
-                // index 1 - finish
+                // index 1 - конечная точка
                 GraphVertex endVertex = new GraphVertex(m_endPoint, -1, m_endPoint);
                 m_GraphVertexes.Add(endVertex);
 
@@ -1066,11 +1101,6 @@ namespace CircleEditor
             if (m_isStartEntered)
             {
                 GenerateEdgesFromPointToAll(0);
-            }
-
-            if (m_isEndEntered)
-            {
-                GenerateEdgesFromPointToAll(1);
             }
 
             if (m_isStartEntered && m_isEndEntered)
@@ -1092,8 +1122,11 @@ namespace CircleEditor
         private void GenerateEdgesFromPointToAll(int vertexIndex)
         {
             PointF point = m_GraphVertexes[vertexIndex].m_position;
-            for (int i = 0; i < m_GraphObstructions.Count; i++)
+            for (int i = 0; i < m_GraphObstructions.Count; ++i)
             {
+                if (m_GraphObstructions[i].m_isBlocked)
+                    continue;
+
                 List<Edge> edges = InternalBitangents(point, 0, m_GraphObstructions[i].m_center, m_GraphObstructions[i].m_radius);
 
                 foreach (Edge e in edges)
@@ -1125,9 +1158,9 @@ namespace CircleEditor
             if (m_GraphObstructions[obstacleIndex].m_isEdgesGenerated)
                 return;
 
-            for (int i = 0; i < m_GraphObstructions.Count; i++)
+            for (int i = 0; i < m_GraphObstructions.Count; ++i)
             {
-                if (i == obstacleIndex || m_GraphObstructions[i].m_isEdgesGenerated)
+                if (i == obstacleIndex || m_GraphObstructions[i].m_isEdgesGenerated || m_GraphObstructions[i].m_isBlocked)
                     continue;
 
                 List<Edge> surfing = surfingEdges(obstacleIndex, i);
@@ -1153,7 +1186,7 @@ namespace CircleEditor
                 }
             }
 
-            List<GraphEdge> hugging = createHuggingEdges(obstacleIndex);
+            List<GraphEdge> hugging = CreateHuggingEdges(obstacleIndex);
 
             foreach (GraphEdge hEdge in hugging)
             {
@@ -1185,11 +1218,11 @@ namespace CircleEditor
 
             PointF H = new PointF(centerB.X + rB * (-VectAB.X), centerB.Y + rB * (-VectAB.Y));
 
-            PointF C = BaseMath.rotatePoint(ref G, ref centerA, -Q);
-            PointF D = BaseMath.rotatePoint(ref G, ref centerA, Q);
+            PointF C = BaseMath.RotatePoint(ref G, ref centerA, -Q);
+            PointF D = BaseMath.RotatePoint(ref G, ref centerA, Q);
 
-            PointF E = BaseMath.rotatePoint(ref H, ref centerB, Q);
-            PointF F = BaseMath.rotatePoint(ref H, ref centerB, -Q);
+            PointF E = BaseMath.RotatePoint(ref H, ref centerB, Q);
+            PointF F = BaseMath.RotatePoint(ref H, ref centerB, -Q);
 
             List<Edge> list = new List<Edge>
             {
@@ -1215,7 +1248,7 @@ namespace CircleEditor
             PointF edgeStart = edge.m_first;
             PointF edgeEnd = edge.m_second;
 
-            for (int i = 0; i < m_GraphObstructions.Count; i++)
+            for (int i = 0; i < m_GraphObstructions.Count; ++i)
             {
                 if (i == firstIgnore || i == secondIgnore)
                     continue;
@@ -1244,7 +1277,7 @@ namespace CircleEditor
             {
                 List<Edge> internalBit = InternalBitangents(centerA, rA, centerB, rB);
 
-                for (int i = 0; i < internalBit.Count; i++)
+                for (int i = 0; i < internalBit.Count; ++i)
                 {
                     if (!IsObstructionsBlockEdge(internalBit[i], firstObstIndex, secondObstIndex))
                         edges.Add(internalBit[i]);
@@ -1253,7 +1286,7 @@ namespace CircleEditor
 
             List<Edge> externalBit = externalBitangents(centerA, rA, centerB, rB);
 
-            for (int i = 0; i < externalBit.Count; i++)
+            for (int i = 0; i < externalBit.Count; ++i)
             {
                 if (!IsObstructionsBlockEdge(externalBit[i], firstObstIndex, secondObstIndex))
                     edges.Add(externalBit[i]);
@@ -1286,20 +1319,20 @@ namespace CircleEditor
             return edge;
         }
 
-        private List<GraphEdge> createHuggingEdges(int obstacleIndex)
+        private List<GraphEdge> CreateHuggingEdges(int obstacleIndex)
         {
             List<GraphEdge> edges = new List<GraphEdge>();
             List<int> obstacleVertexes = m_GraphObstructions[obstacleIndex].m_VertexIndexes;
 
             PointF center = m_GraphObstructions[obstacleIndex].m_center;
 
-            for (int i = 0; i < obstacleVertexes.Count; i++)
-                for (int j = i + 1; j < obstacleVertexes.Count; j++)
+            for (int i = 0; i < obstacleVertexes.Count; ++i)
+                for (int j = i + 1; j < obstacleVertexes.Count; ++j)
                 {
                     int firstVertexIndex = obstacleVertexes[i];
                     int secondVertexIndex = obstacleVertexes[j];
 
-                    bool is_achievable = true;
+                    bool isAchievable = true;
 
                     PointF startV = new PointF();
                     startV.X = m_GraphVertexes[firstVertexIndex].m_position.X - center.X;
@@ -1324,22 +1357,22 @@ namespace CircleEditor
                         float toPpfAngle = BaseMath.AngleBetweenVectors(ref startV, ref ppfV);
                         float toPpsAngle = BaseMath.AngleBetweenVectors(ref startV, ref ppsV);
 
-                        if (compareAngles(edgeAngle, toPpfAngle) || compareAngles(edgeAngle, toPpsAngle))
+                        if (CompareAngles(edgeAngle, toPpfAngle) || CompareAngles(edgeAngle, toPpsAngle))
                         {
-                            is_achievable = false;
+                            isAchievable = false;
                             break;
                         }
 
                     }
 
-                    if (is_achievable)
+                    if (isAchievable)
                         edges.Add(createHuggingEdge(obstacleIndex, firstVertexIndex, secondVertexIndex));
                 }
 
             return edges;
         }
 
-        private bool compareAngles(float fAngle, float sAngle)
+        private bool CompareAngles(float fAngle, float sAngle)
         {
             // Если углы имеют одинаковый знак
             if (fAngle * sAngle > 0)
@@ -1386,11 +1419,11 @@ namespace CircleEditor
 
             PointF H = new PointF(centerB.X + rB * VectBL.X, centerB.Y + rB * VectBL.Y);
 
-            PointF C = BaseMath.rotatePoint(ref G, ref centerA, -Q);
-            PointF D = BaseMath.rotatePoint(ref G, ref centerA, Q);
+            PointF C = BaseMath.RotatePoint(ref G, ref centerA, -Q);
+            PointF D = BaseMath.RotatePoint(ref G, ref centerA, Q);
 
-            PointF E = BaseMath.rotatePoint(ref H, ref centerB, Q);
-            PointF F = BaseMath.rotatePoint(ref H, ref centerB, -Q);
+            PointF E = BaseMath.RotatePoint(ref H, ref centerB, Q);
+            PointF F = BaseMath.RotatePoint(ref H, ref centerB, -Q);
 
             List<Edge> list = new List<Edge>
             {

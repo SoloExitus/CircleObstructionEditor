@@ -36,6 +36,9 @@ namespace CircleEditor
             this.numUD_numberCreate = new System.Windows.Forms.NumericUpDown();
             this.bt_createRandom = new System.Windows.Forms.Button();
             this.gb_Algorithms = new System.Windows.Forms.GroupBox();
+            this.button2 = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
             this.btn_DrawGraph = new System.Windows.Forms.Button();
             this.bt_runAstar = new System.Windows.Forms.Button();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -52,7 +55,6 @@ namespace CircleEditor
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.pb_ViewPort = new System.Windows.Forms.PictureBox();
-            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.gb_randomGeneration.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numUD_numberCreate)).BeginInit();
@@ -81,7 +83,7 @@ namespace CircleEditor
             this.groupBox1.Controls.Add(this.groupBox2);
             this.groupBox1.Location = new System.Drawing.Point(730, 0);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(163, 351);
+            this.groupBox1.Size = new System.Drawing.Size(163, 384);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Control";
@@ -121,15 +123,48 @@ namespace CircleEditor
             // 
             // gb_Algorithms
             // 
+            this.gb_Algorithms.Controls.Add(this.button2);
+            this.gb_Algorithms.Controls.Add(this.button1);
             this.gb_Algorithms.Controls.Add(this.cb_DebugMode);
             this.gb_Algorithms.Controls.Add(this.btn_DrawGraph);
             this.gb_Algorithms.Controls.Add(this.bt_runAstar);
             this.gb_Algorithms.Location = new System.Drawing.Point(7, 268);
             this.gb_Algorithms.Name = "gb_Algorithms";
-            this.gb_Algorithms.Size = new System.Drawing.Size(151, 76);
+            this.gb_Algorithms.Size = new System.Drawing.Size(151, 110);
             this.gb_Algorithms.TabIndex = 3;
             this.gb_Algorithms.TabStop = false;
             this.gb_Algorithms.Text = "Algorithms";
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(4, 71);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(69, 23);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "Bench A*";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // button1
+            // 
+            this.button1.Location = new System.Drawing.Point(79, 71);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(69, 23);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Bench Full";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.button1_Click);
+            // 
+            // cb_DebugMode
+            // 
+            this.cb_DebugMode.AutoSize = true;
+            this.cb_DebugMode.Location = new System.Drawing.Point(6, 19);
+            this.cb_DebugMode.Name = "cb_DebugMode";
+            this.cb_DebugMode.Size = new System.Drawing.Size(58, 17);
+            this.cb_DebugMode.TabIndex = 3;
+            this.cb_DebugMode.Text = "Debug";
+            this.cb_DebugMode.UseVisualStyleBackColor = true;
+            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);
             // 
             // btn_DrawGraph
             // 
@@ -290,17 +325,6 @@ namespace CircleEditor
             this.pb_ViewPort.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseDown);
             this.pb_ViewPort.MouseMove += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseMove);
             // 
-            // cb_DebugMode
-            // 
-            this.cb_DebugMode.AutoSize = true;
-            this.cb_DebugMode.Location = new System.Drawing.Point(6, 19);
-            this.cb_DebugMode.Name = "cb_DebugMode";
-            this.cb_DebugMode.Size = new System.Drawing.Size(58, 17);
-            this.cb_DebugMode.TabIndex = 3;
-            this.cb_DebugMode.Text = "Debug";
-            this.cb_DebugMode.UseVisualStyleBackColor = true;
-            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);
-            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -351,6 +375,8 @@ namespace CircleEditor
         private System.Windows.Forms.Button btn_DrawGraph;
         private System.Windows.Forms.PictureBox pb_ViewPort;
         private System.Windows.Forms.CheckBox cb_DebugMode;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
     }
 }
 
