@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<map>
+  <start x="697" y="383" />
+  <end x="1432" y="474" />
+  <obstructions>
+    <obstruction>
+      <center x="1095" y="327" />
+      <radius radius="174.957138" />
+    </obstruction>
+    <obstruction>
+      <center x="1106" y="309" />
+      <radius radius="71.5681458" />
+    </obstruction>
+    <obstruction>
+      <center x="1291" y="650" />
+      <radius radius="124.326187" />
+    </obstruction>
+    <obstruction>
+      <center x="1323" y="436" />
+      <radius radius="62.3698654" />
+    </obstruction>
+    <obstruction>
+      <center x="1335" y="441" />
+      <radius radius="29.0688839" />
+    </obstruction>
+    <obstruction>
+      <center x="1460" y="530" />
+      <radius radius="74.46476" />
+    </obstruction>
+    <obstruction>
+      <center x="847" y="644" />
+      <radius radius="210.717819" />
+    </obstruction>
+    <obstruction>
+      <center x="769" y="215" />
+      <radius radius="151.267975" />
+    </obstruction>
+    <obstruction>
+      <center x="1114" y="596" />
+      <radius radius="168.145767" />
+    </obstruction>
+  </obstructions>
+</map>
