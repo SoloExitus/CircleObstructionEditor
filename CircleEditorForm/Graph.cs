@@ -69,6 +69,20 @@ class Graph
         {
             m_GraphObstructions.Add(new CircleObstacle(c));
         }
+
+        for (int i = 0; i < m_GraphObstructions.Count; ++i)
+        {
+            bool isNeeded = ObstacleNeedAndIntersect(i, m_GraphObstructions[i], out List<int> intersections);
+
+            if (isNeeded)
+            {
+                FillIntersectionsForObstructions(i, intersections);
+            }
+            else
+            {
+                m_GraphObstructions[i].m_isBlocked = true;
+            }
+        }
     }
 
     public void SetDebug(bool debug)
@@ -107,23 +121,10 @@ class Graph
         m_isPathGenerated = false;
         m_isStartAndEndGenerated = false;
 
-        m_GraphObstructions.Clear();
-    }
-
-    private void ObstaclesProcess()
-    {
-        for (int i = 0; i < m_GraphObstructions.Count; ++i)
+        foreach(CircleObstacle co in m_GraphObstructions)
         {
-            bool isNeeded = ObstacleNeedAndIntersect(i, m_GraphObstructions[i], out List<int> intersections);
-
-            if (isNeeded)
-            {
-                FillIntersectionsForObstructions(i, intersections);
-            }
-            else
-            {
-                m_GraphObstructions[i].m_isBlocked = true;
-            }
+            co.m_isEdgesGenerated = false;
+            co.m_VertexIndexes.Clear();
         }
     }
 
@@ -136,7 +137,7 @@ class Graph
             if (currentObstacle == i)
                 continue;
 
-            int res = CircleInteraction(obs, m_GraphObstructions[i]);
+            int res = obs.Interaction(m_GraphObstructions[i]);
 
             if (res == 0)
                 return false;
@@ -177,27 +178,14 @@ class Graph
             PointF second = BaseMath.RotatePoint(ref c, ref obs.m_center, -teta);
 
             obs.m_Entersections.Add(new PointFPair(first, second));
-            intersectObs.m_Entersections.Add(new PointFPair(first, second));
-
             obs.m_IntersectCircleIndexes.Add(interIndex);
-            intersectObs.m_IntersectCircleIndexes.Add(obsIndex);
         }
-    }
-
-    private static int CircleInteraction(in Circle fc, in Circle sc)
-    {
-        return BaseMath.CircleInteraction(
-            in fc.m_center, in fc.m_radius,
-            in sc.m_center, in sc.m_radius
-            );
     }
 
     public void GenerateFull()
     {
         if (m_isFullGraphGenerated)
             return;
-
-        ObstaclesProcess();
 
         if (!m_isStartAndEndGenerated)
             CreatStartAndEndVertexesAndEdges();
@@ -298,8 +286,6 @@ class Graph
 
         if (!m_isStartEntered || !m_isEndEntered)
             return false;
-
-        ObstaclesProcess();
 
         VertexPriorityQueue pq = new VertexPriorityQueue();
         //MyPriorityQueue Q = new MyPriorityQueue();

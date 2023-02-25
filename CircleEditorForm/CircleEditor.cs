@@ -50,7 +50,6 @@ class CircleEditor
     {
         UpdateGraphMap();
         m_Graph.GenerateFull();
-        m_Graph.RunA();
     }
 
     public void RunA()
@@ -79,6 +78,12 @@ class CircleEditor
         m_Graph.DropStartAndEnd();
 
         m_isMapChanged = true;
+    }
+
+    public void MapIsChanged()
+    {
+        m_isMapChanged = true;
+        m_Graph.Clear();
     }
 
     public bool AddObstruction(ref Circle obs)
@@ -239,6 +244,10 @@ class CircleEditor
             m_Graph.SetMap(m_Obstructions);
             m_isMapChanged = false;
         }
+        else
+        {
+            m_Graph.Clear();
+        }
     }
 
     private void DrawObstructions(ref Graphics g)
@@ -257,15 +266,15 @@ class CircleEditor
         {
             case EditorMode.Creating:
                 m_Obstructions[m_creatingIndex].SetRadius(mouse_position);
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Moving:
                 m_Obstructions[m_editingIndex].SetCenter(mouse_position);
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Editing:
                 m_Obstructions[m_editingIndex].SetRadius(mouse_position);
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
         }
     }
@@ -278,13 +287,13 @@ class CircleEditor
                 m_creatingIndex = m_Obstructions.Count();
                 m_Obstructions.Add(new Circle(mouse_position));
                 m_currentMode = EditorMode.Creating;
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Creating:
                 m_Obstructions[m_creatingIndex].SetRadius(mouse_position);
                 m_creatingIndex = -1;
                 m_currentMode = EditorMode.Create;
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Remove:
                 int removeIndex = TryGrabObstruction(mouse_position);
@@ -292,7 +301,7 @@ class CircleEditor
                 {
                     m_Obstructions.Remove(m_Obstructions[removeIndex]);
                 }
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Edit:
                 m_editingIndex = TryGrabObstruction(mouse_position);
@@ -300,13 +309,13 @@ class CircleEditor
                 {
                     m_currentMode = EditorMode.Moving;
                 }
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Moving:
                 m_Obstructions[m_editingIndex].SetCenter(mouse_position);
                 m_editingIndex = -1;
                 m_currentMode = EditorMode.Edit;
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.SetStart:
                 m_startPoint = mouse_position;
@@ -331,12 +340,12 @@ class CircleEditor
                 {
                     m_currentMode = EditorMode.Editing;
                 }
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
             case EditorMode.Editing:
                 m_Obstructions[m_editingIndex].SetRadius(mouse_position);
                 m_currentMode = EditorMode.Edit;
-                m_isMapChanged = true;
+                MapIsChanged();
                 break;
         }
     }
