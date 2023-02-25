@@ -69,16 +69,20 @@
             // 
             // openMapFileDialog
             // 
-            this.openMapFileDialog.FileName = "openFileDialog";
+            this.openMapFileDialog.FileName = "map";
+            // 
+            // saveMapFileDialog
+            // 
+            this.saveMapFileDialog.FileName = "map";
             // 
             // pb_ViewPort
             // 
             this.pb_ViewPort.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.pb_ViewPort.Location = new System.Drawing.Point(0, 0);
+            this.pb_ViewPort.Location = new System.Drawing.Point(3, 0);
             this.pb_ViewPort.Name = "pb_ViewPort";
-            this.pb_ViewPort.Size = new System.Drawing.Size(720, 720);
+            this.pb_ViewPort.Size = new System.Drawing.Size(500, 873);
             this.pb_ViewPort.TabIndex = 0;
             this.pb_ViewPort.TabStop = false;
             this.pb_ViewPort.MouseDown += new System.Windows.Forms.MouseEventHandler(this.ModePoint_MouseDown);
@@ -91,7 +95,7 @@
             this.gb_Control.Controls.Add(this.gb_EditorMode);
             this.gb_Control.Controls.Add(this.gb_MapRandomFill);
             this.gb_Control.Controls.Add(this.gb_MapControl);
-            this.gb_Control.Location = new System.Drawing.Point(759, 0);
+            this.gb_Control.Location = new System.Drawing.Point(539, 0);
             this.gb_Control.Name = "gb_Control";
             this.gb_Control.Size = new System.Drawing.Size(163, 399);
             this.gb_Control.TabIndex = 1;
@@ -333,7 +337,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(924, 528);
+            this.ClientSize = new System.Drawing.Size(704, 681);
             this.Controls.Add(this.pb_ViewPort);
             this.Controls.Add(this.gb_Control);
             this.Name = "MainForm";

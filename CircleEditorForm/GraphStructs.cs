@@ -1,5 +1,4 @@
 ﻿using BaseStruct;
-using System.Security.Cryptography.X509Certificates;
 using PointFPair = System.Tuple<System.Drawing.PointF, System.Drawing.PointF>;
 
 namespace GraphStruct

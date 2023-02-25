@@ -27,19 +27,27 @@
             m_radius = radius;
         }
 
-        public void setRadius(float radius)
+        public void SetRadius(float radius)
         {
             m_radius = radius;
         }
 
-        public void setRadius(PointF e)
+        public void SetRadius(PointF e)
         {
             m_radius = BaseMath.Distance(in m_center, in e);
         }
 
-        public void setCenter(PointF center)
+        public void SetCenter(PointF center)
         {
             m_center = center;
+        }
+
+        public int Interaction(in Circle rhs)
+        {
+            return BaseMath.CircleInteraction(
+                m_center, m_radius,
+                rhs.m_center, rhs.m_radius
+                );
         }
     }
 

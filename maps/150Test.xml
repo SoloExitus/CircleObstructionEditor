@@ -1,0 +1,607 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<map>
+  <start x="135" y="855" />
+  <end x="1484" y="220" />
+  <obstructions>
+    <obstruction>
+      <center x="1702" y="596" />
+      <radius radius="283" />
+    </obstruction>
+    <obstruction>
+      <center x="1072" y="962" />
+      <radius radius="42" />
+    </obstruction>
+    <obstruction>
+      <center x="810" y="998" />
+      <radius radius="141" />
+    </obstruction>
+    <obstruction>
+      <center x="529" y="250" />
+      <radius radius="297" />
+    </obstruction>
+    <obstruction>
+      <center x="110" y="700" />
+      <radius radius="85" />
+    </obstruction>
+    <obstruction>
+      <center x="175" y="1078" />
+      <radius radius="199" />
+    </obstruction>
+    <obstruction>
+      <center x="1396" y="278" />
+      <radius radius="64" />
+    </obstruction>
+    <obstruction>
+      <center x="1700" y="1196" />
+      <radius radius="202" />
+    </obstruction>
+    <obstruction>
+      <center x="1384" y="130" />
+      <radius radius="38" />
+    </obstruction>
+    <obstruction>
+      <center x="1038" y="717" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="1311" y="947" />
+      <radius radius="132" />
+    </obstruction>
+    <obstruction>
+      <center x="1014" y="172" />
+      <radius radius="120" />
+    </obstruction>
+    <obstruction>
+      <center x="1442" y="1200" />
+      <radius radius="30" />
+    </obstruction>
+    <obstruction>
+      <center x="1007" y="394" />
+      <radius radius="53" />
+    </obstruction>
+    <obstruction>
+      <center x="1614" y="151" />
+      <radius radius="93" />
+    </obstruction>
+    <obstruction>
+      <center x="104" y="808" />
+      <radius radius="14" />
+    </obstruction>
+    <obstruction>
+      <center x="1236" y="603" />
+      <radius radius="135" />
+    </obstruction>
+    <obstruction>
+      <center x="535" y="881" />
+      <radius radius="111" />
+    </obstruction>
+    <obstruction>
+      <center x="1449" y="845" />
+      <radius radius="24" />
+    </obstruction>
+    <obstruction>
+      <center x="25" y="487" />
+      <radius radius="17" />
+    </obstruction>
+    <obstruction>
+      <center x="591" y="736" />
+      <radius radius="32" />
+    </obstruction>
+    <obstruction>
+      <center x="1341" y="426" />
+      <radius radius="33" />
+    </obstruction>
+    <obstruction>
+      <center x="385" y="753" />
+      <radius radius="5" />
+    </obstruction>
+    <obstruction>
+      <center x="629" y="571" />
+      <radius radius="34" />
+    </obstruction>
+    <obstruction>
+      <center x="56" y="68" />
+      <radius radius="53" />
+    </obstruction>
+    <obstruction>
+      <center x="330" y="614" />
+      <radius radius="84" />
+    </obstruction>
+    <obstruction>
+      <center x="1096" y="1194" />
+      <radius radius="126" />
+    </obstruction>
+    <obstruction>
+      <center x="1133" y="301" />
+      <radius radius="31" />
+    </obstruction>
+    <obstruction>
+      <center x="809" y="780" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="184" y="367" />
+      <radius radius="64" />
+    </obstruction>
+    <obstruction>
+      <center x="123" y="414" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="1310" y="795" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="151" y="2" />
+      <radius radius="32" />
+    </obstruction>
+    <obstruction>
+      <center x="1535" y="29" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="1237" y="190" />
+      <radius radius="41" />
+    </obstruction>
+    <obstruction>
+      <center x="104" y="132" />
+      <radius radius="20" />
+    </obstruction>
+    <obstruction>
+      <center x="108" y="185" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="457" y="1145" />
+      <radius radius="83" />
+    </obstruction>
+    <obstruction>
+      <center x="130" y="506" />
+      <radius radius="56" />
+    </obstruction>
+    <obstruction>
+      <center x="156" y="53" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="983" y="15" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="812" y="595" />
+      <radius radius="94" />
+    </obstruction>
+    <obstruction>
+      <center x="1614" y="946" />
+      <radius radius="41" />
+    </obstruction>
+    <obstruction>
+      <center x="576" y="1074" />
+      <radius radius="3" />
+    </obstruction>
+    <obstruction>
+      <center x="1172" y="43" />
+      <radius radius="35" />
+    </obstruction>
+    <obstruction>
+      <center x="21" y="628" />
+      <radius radius="6" />
+    </obstruction>
+    <obstruction>
+      <center x="474" y="611" />
+      <radius radius="6" />
+    </obstruction>
+    <obstruction>
+      <center x="428" y="979" />
+      <radius radius="28" />
+    </obstruction>
+    <obstruction>
+      <center x="135" y="91" />
+      <radius radius="25" />
+    </obstruction>
+    <obstruction>
+      <center x="781" y="453" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="1027" y="862" />
+      <radius radius="32" />
+    </obstruction>
+    <obstruction>
+      <center x="924" y="703" />
+      <radius radius="57" />
+    </obstruction>
+    <obstruction>
+      <center x="1411" y="369" />
+      <radius radius="9" />
+    </obstruction>
+    <obstruction>
+      <center x="1311" y="1126" />
+      <radius radius="5" />
+    </obstruction>
+    <obstruction>
+      <center x="881" y="316" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="858" y="813" />
+      <radius radius="16" />
+    </obstruction>
+    <obstruction>
+      <center x="1157" y="1010" />
+      <radius radius="25" />
+    </obstruction>
+    <obstruction>
+      <center x="856" y="2" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="1251" y="433" />
+      <radius radius="21" />
+    </obstruction>
+    <obstruction>
+      <center x="496" y="621" />
+      <radius radius="6" />
+    </obstruction>
+    <obstruction>
+      <center x="917" y="536" />
+      <radius radius="9" />
+    </obstruction>
+    <obstruction>
+      <center x="1109" y="872" />
+      <radius radius="22" />
+    </obstruction>
+    <obstruction>
+      <center x="1444" y="1086" />
+      <radius radius="2" />
+    </obstruction>
+    <obstruction>
+      <center x="716" y="1177" />
+      <radius radius="51" />
+    </obstruction>
+    <obstruction>
+      <center x="937" y="771" />
+      <radius radius="5" />
+    </obstruction>
+    <obstruction>
+      <center x="1168" y="816" />
+      <radius radius="43" />
+    </obstruction>
+    <obstruction>
+      <center x="208" y="30" />
+      <radius radius="19" />
+    </obstruction>
+    <obstruction>
+      <center x="220" y="510" />
+      <radius radius="1" />
+    </obstruction>
+    <obstruction>
+      <center x="265" y="887" />
+      <radius radius="2" />
+    </obstruction>
+    <obstruction>
+      <center x="454" y="790" />
+      <radius radius="9" />
+    </obstruction>
+    <obstruction>
+      <center x="268" y="520" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="1168" y="184" />
+      <radius radius="18" />
+    </obstruction>
+    <obstruction>
+      <center x="220" y="812" />
+      <radius radius="3" />
+    </obstruction>
+    <obstruction>
+      <center x="963" y="461" />
+      <radius radius="3" />
+    </obstruction>
+    <obstruction>
+      <center x="1357" y="1128" />
+      <radius radius="38" />
+    </obstruction>
+    <obstruction>
+      <center x="932" y="852" />
+      <radius radius="33" />
+    </obstruction>
+    <obstruction>
+      <center x="66" y="342" />
+      <radius radius="50" />
+    </obstruction>
+    <obstruction>
+      <center x="147" y="231" />
+      <radius radius="30" />
+    </obstruction>
+    <obstruction>
+      <center x="1035" y="545" />
+      <radius radius="59" />
+    </obstruction>
+    <obstruction>
+      <center x="558" y="601" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="1312" y="1186" />
+      <radius radius="30" />
+    </obstruction>
+    <obstruction>
+      <center x="1089" y="804" />
+      <radius radius="17" />
+    </obstruction>
+    <obstruction>
+      <center x="463" y="1033" />
+      <radius radius="23" />
+    </obstruction>
+    <obstruction>
+      <center x="1277" y="379" />
+      <radius radius="29" />
+    </obstruction>
+    <obstruction>
+      <center x="925" y="367" />
+      <radius radius="1" />
+    </obstruction>
+    <obstruction>
+      <center x="846" y="1205" />
+      <radius radius="30" />
+    </obstruction>
+    <obstruction>
+      <center x="1479" y="1096" />
+      <radius radius="5" />
+    </obstruction>
+    <obstruction>
+      <center x="1336" y="67" />
+      <radius radius="18" />
+    </obstruction>
+    <obstruction>
+      <center x="729" y="848" />
+      <radius radius="17" />
+    </obstruction>
+    <obstruction>
+      <center x="1447" y="1050" />
+      <radius radius="20" />
+    </obstruction>
+    <obstruction>
+      <center x="1520" y="953" />
+      <radius radius="2" />
+    </obstruction>
+    <obstruction>
+      <center x="108" y="582" />
+      <radius radius="18" />
+    </obstruction>
+    <obstruction>
+      <center x="408" y="810" />
+      <radius radius="29" />
+    </obstruction>
+    <obstruction>
+      <center x="817" y="102" />
+      <radius radius="16" />
+    </obstruction>
+    <obstruction>
+      <center x="0" y="780" />
+      <radius radius="5" />
+    </obstruction>
+    <obstruction>
+      <center x="53" y="262" />
+      <radius radius="31" />
+    </obstruction>
+    <obstruction>
+      <center x="1485" y="968" />
+      <radius radius="29" />
+    </obstruction>
+    <obstruction>
+      <center x="598" y="1186" />
+      <radius radius="51" />
+    </obstruction>
+    <obstruction>
+      <center x="1594" y="314" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="922" y="502" />
+      <radius radius="2" />
+    </obstruction>
+    <obstruction>
+      <center x="1019" y="672" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="912" y="469" />
+      <radius radius="19" />
+    </obstruction>
+    <obstruction>
+      <center x="692" y="692" />
+      <radius radius="35" />
+    </obstruction>
+    <obstruction>
+      <center x="69" y="162" />
+      <radius radius="7" />
+    </obstruction>
+    <obstruction>
+      <center x="1331" y="169" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="22" y="844" />
+      <radius radius="18" />
+    </obstruction>
+    <obstruction>
+      <center x="316" y="857" />
+      <radius radius="53" />
+    </obstruction>
+    <obstruction>
+      <center x="28" y="887" />
+      <radius radius="7" />
+    </obstruction>
+    <obstruction>
+      <center x="513" y="742" />
+      <radius radius="13" />
+    </obstruction>
+    <obstruction>
+      <center x="1386" y="47" />
+      <radius radius="32" />
+    </obstruction>
+    <obstruction>
+      <center x="945" y="641" />
+      <radius radius="3" />
+    </obstruction>
+    <obstruction>
+      <center x="1707" y="945" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="1208" y="339" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="1451" y="797" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="12" y="652" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="153" y="189" />
+      <radius radius="1" />
+    </obstruction>
+    <obstruction>
+      <center x="265" y="738" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="153" y="175" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="240" y="22" />
+      <radius radius="9" />
+    </obstruction>
+    <obstruction>
+      <center x="10" y="571" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="1361" y="761" />
+      <radius radius="38" />
+    </obstruction>
+    <obstruction>
+      <center x="1368" y="1207" />
+      <radius radius="13" />
+    </obstruction>
+    <obstruction>
+      <center x="579" y="1131" />
+      <radius radius="3" />
+    </obstruction>
+    <obstruction>
+      <center x="1264" y="1149" />
+      <radius radius="26" />
+    </obstruction>
+    <obstruction>
+      <center x="1358" y="482" />
+      <radius radius="4" />
+    </obstruction>
+    <obstruction>
+      <center x="753" y="19" />
+      <radius radius="10" />
+    </obstruction>
+    <obstruction>
+      <center x="1413" y="438" />
+      <radius radius="22" />
+    </obstruction>
+    <obstruction>
+      <center x="388" y="921" />
+      <radius radius="27" />
+    </obstruction>
+    <obstruction>
+      <center x="1011" y="930" />
+      <radius radius="19" />
+    </obstruction>
+    <obstruction>
+      <center x="1167" y="754" />
+      <radius radius="16" />
+    </obstruction>
+    <obstruction>
+      <center x="1062" y="430" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="888" y="271" />
+      <radius radius="10" />
+    </obstruction>
+    <obstruction>
+      <center x="199" y="137" />
+      <radius radius="30" />
+    </obstruction>
+    <obstruction>
+      <center x="1183" y="107" />
+      <radius radius="16" />
+    </obstruction>
+    <obstruction>
+      <center x="1596" y="36" />
+      <radius radius="1" />
+    </obstruction>
+    <obstruction>
+      <center x="1311" y="114" />
+      <radius radius="21" />
+    </obstruction>
+    <obstruction>
+      <center x="1449" y="54" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="391" y="706" />
+      <radius radius="7" />
+    </obstruction>
+    <obstruction>
+      <center x="1277" y="78" />
+      <radius radius="8" />
+    </obstruction>
+    <obstruction>
+      <center x="982" y="1032" />
+      <radius radius="25" />
+    </obstruction>
+    <obstruction>
+      <center x="1235" y="1183" />
+      <radius radius="13" />
+    </obstruction>
+    <obstruction>
+      <center x="324" y="739" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="439" y="791" />
+      <radius radius="1" />
+    </obstruction>
+    <obstruction>
+      <center x="1303" y="741" />
+      <radius radius="12" />
+    </obstruction>
+    <obstruction>
+      <center x="1684" y="927" />
+      <radius radius="23" />
+    </obstruction>
+    <obstruction>
+      <center x="703" y="773" />
+      <radius radius="33" />
+    </obstruction>
+    <obstruction>
+      <center x="612" y="681" />
+      <radius radius="17" />
+    </obstruction>
+    <obstruction>
+      <center x="694" y="640" />
+      <radius radius="11" />
+    </obstruction>
+    <obstruction>
+      <center x="1185" y="1083" />
+      <radius radius="2" />
+    </obstruction>
+    <obstruction>
+      <center x="548" y="650" />
+      <radius radius="8" />
+    </obstruction>
+  </obstructions>
+</map>

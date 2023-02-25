@@ -1,9 +1,5 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-
 using BaseStruct;
-using GraphStruct;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
+using System.Diagnostics;
 
 namespace CircleEditorForm
 {
@@ -24,10 +20,12 @@ namespace CircleEditorForm
         {
             this.Text = "–едактор циркул€рных преп€тствий";
 
+            openMapFileDialog.FileName = "Map.xml";
+            saveMapFileDialog.FileName = "NewMap.xml";
             openMapFileDialog.Filter = "Text files(*.xml)|*.xml|All files(*.*)|*.*";
             saveMapFileDialog.Filter = "Text files(*.xml)|*.xml|All files(*.*)|*.*";
 
-            timerRender.Interval = 20;
+            timerRender.Interval = 18;
 
             Image = new Bitmap(pb_ViewPort.Width, pb_ViewPort.Height);
             G = Graphics.FromImage(Image);
@@ -100,7 +98,6 @@ namespace CircleEditorForm
             {
                 Editor.MouseDownRight(new PointF((float)e.Location.X, (float)e.Location.Y));
             }
-
             m_isUpdate = true;
         }
 
@@ -144,16 +141,21 @@ namespace CircleEditorForm
 
             Random rnd = new Random();
 
-            for (int i = 0; i < createNum; ++i)
+            int count = 0;
+            do
             {
+
                 float center_X = rnd.Next(0, max_X + 1);
                 float center_Y = rnd.Next(0, max_Y + 1);
 
                 float radius = rnd.Next(1, (int)(max_Y / 2) + 1);
 
                 Circle newObstruct = new Circle(new PointF(center_X, center_Y), radius);
-                Editor.AddObstruction(ref newObstruct);
-            }
+
+                if (Editor.AddObstruction(ref newObstruct))
+                    count++;
+
+            } while(count < createNum);
 
             m_isUpdate = true;
         }
@@ -174,7 +176,9 @@ namespace CircleEditorForm
 
         private void pb_ViewPort_SizeChanged(object sender, EventArgs e)
         {
-            Image = new Bitmap(pb_ViewPort.Width, pb_ViewPort.Height);
+            if (pb_ViewPort.Width > 0 && pb_ViewPort.Height > 0)
+                Image = new Bitmap(pb_ViewPort.Width, pb_ViewPort.Height);
+
             G = Graphics.FromImage(Image);
             m_isUpdate = true;
         }
@@ -188,42 +192,34 @@ namespace CircleEditorForm
         private void btn_GenerateFullGraphBenchmark_Click(object sender, EventArgs e)
         {
             Stopwatch sw = new Stopwatch();
-            int count = 40;
+            int count = 5;
             sw.Start();
-
             for (int i = 0; i < count; ++i)
             {
                 Editor.GenerateFullGraph();
                 Editor.RunA();
-                Editor.ClearGraph();
+                Editor.ResetMap();
             }
-
             sw.Stop();
-
             double res = sw.ElapsedMilliseconds / count;
 
             MessageBox.Show($"Full graph generate time: {res}", "Full graph benchmark");
-
-            //Console.WriteLine($"Full graph generate time: {res}");
         }
 
         private void btn_RunABenchmark_Click(object sender, EventArgs e)
         {
             Stopwatch sw = new Stopwatch();
-            int count = 40;
+            int count = 5;
             sw.Start();
-
             for (int i = 0; i < count; ++i)
             {
                 Editor.RunA();
-                Editor.ClearGraph();
+                Editor.ResetMap();
             }
             sw.Stop();
             double res = sw.ElapsedMilliseconds / count;
 
             MessageBox.Show($"Step by step graph generate time: {res}", "A* benchmark");
-
-            //Console.WriteLine($"Step by step graph generate time: {res}");
         }
 
     }

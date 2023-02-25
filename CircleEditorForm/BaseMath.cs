@@ -55,4 +55,20 @@ public static class BaseMath
         float dist = Distance(point, center);
         return dist < radius;
     }
+
+    public static int CircleInteraction(in PointF fCenter, in float fRadius, in PointF sCenter, in float sRadius)
+    {
+        float centerDist = Distance(in fCenter, in sCenter);
+        float sumRadius = fRadius + sRadius;
+
+        // Не пересекаются
+        if (centerDist > sumRadius)
+            return -1;
+
+        // sc полностью содержит fc
+        if (centerDist + fRadius <= sRadius)
+            return 0;
+
+        return 1; // пересекаются
+    }
 }
