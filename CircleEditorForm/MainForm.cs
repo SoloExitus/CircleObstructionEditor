@@ -85,6 +85,7 @@ namespace CircleEditorForm
         private void ModePoint_MouseMove(object sender, MouseEventArgs e)
         {
             Editor.MouseMove(new PointF((float)e.Location.X, (float)e.Location.Y));
+            l_MousePosition.Text = e.Location.ToString();
             m_isUpdate = true;
         }
 
@@ -221,7 +222,6 @@ namespace CircleEditorForm
 
             MessageBox.Show($"Step by step graph generate time: {res}", "A* benchmark");
         }
-
     }
 
 }

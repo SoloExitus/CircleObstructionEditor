@@ -54,6 +54,7 @@
             this.btn_LoadMap = new System.Windows.Forms.Button();
             this.btn_SaveMap = new System.Windows.Forms.Button();
             this.btn_NewMap = new System.Windows.Forms.Button();
+            this.l_MousePosition = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pb_ViewPort)).BeginInit();
             this.gb_Control.SuspendLayout();
             this.gb_Algorithm.SuspendLayout();
@@ -333,11 +334,22 @@
             this.btn_NewMap.UseVisualStyleBackColor = true;
             this.btn_NewMap.Click += new System.EventHandler(this.btn_NewMap_Click);
             // 
+            // l_MousePosition
+            // 
+            this.l_MousePosition.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.l_MousePosition.AutoSize = true;
+            this.l_MousePosition.Location = new System.Drawing.Point(616, 402);
+            this.l_MousePosition.Name = "l_MousePosition";
+            this.l_MousePosition.Size = new System.Drawing.Size(86, 15);
+            this.l_MousePosition.TabIndex = 2;
+            this.l_MousePosition.Text = "MousePosition";
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(704, 681);
+            this.Controls.Add(this.l_MousePosition);
             this.Controls.Add(this.pb_ViewPort);
             this.Controls.Add(this.gb_Control);
             this.Name = "MainForm";
@@ -354,6 +366,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.nud_CountGenerateObstructions)).EndInit();
             this.gb_MapControl.ResumeLayout(false);
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -384,5 +397,6 @@
         private Button btn_SaveMap;
         private Button btn_NewMap;
         private Button btn_RunA;
+        private Label l_MousePosition;
     }
 }

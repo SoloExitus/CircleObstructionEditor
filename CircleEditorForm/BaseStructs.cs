@@ -1,6 +1,6 @@
 ﻿namespace BaseStruct
 {
-    class Circle
+    public class Circle
     {
         public PointF m_center;
         public float m_radius = 0;
@@ -51,7 +51,7 @@
         }
     }
 
-    class Edge
+    public class Edge
     {
         public PointF m_first;
         public PointF m_second;

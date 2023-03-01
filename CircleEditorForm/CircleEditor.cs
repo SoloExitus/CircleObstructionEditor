@@ -260,23 +260,25 @@ class CircleEditor
         }
     }
 
-    public void MouseMove(PointF mouse_position)
+    public bool MouseMove(PointF mouse_position)
     {
         switch (m_currentMode)
         {
             case EditorMode.Creating:
                 m_Obstructions[m_creatingIndex].SetRadius(mouse_position);
-                MapIsChanged();
-                break;
+                return true;
+                
             case EditorMode.Moving:
                 m_Obstructions[m_editingIndex].SetCenter(mouse_position);
-                MapIsChanged();
-                break;
+                //MapIsChanged();
+                return true;
             case EditorMode.Editing:
                 m_Obstructions[m_editingIndex].SetRadius(mouse_position);
-                MapIsChanged();
-                break;
+                //MapIsChanged();
+                return true;
         }
+
+        return false;
     }
 
     public void MouseDownLeft(PointF mouse_position)
@@ -321,11 +323,13 @@ class CircleEditor
                 m_startPoint = mouse_position;
                 m_Graph.SetStart(ref m_startPoint);
                 m_isStartEntered = true;
+                MapIsChanged();
                 break;
             case EditorMode.SetEnd:
                 m_endPoint = mouse_position;
                 m_Graph.SetEnd(ref m_endPoint);
                 m_isEndEntered = true;
+                MapIsChanged();
                 break;
         }
     }

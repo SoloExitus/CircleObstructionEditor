@@ -17,7 +17,7 @@ class Graph
     bool m_isEndEntered = false;
 
     bool m_isFullGraphGenerated = false;
-    bool m_isPathGenerated = false;
+    bool m_isShortestPathFind = false;
     bool m_isStartAndEndGenerated = false;
 
     bool m_isDebugMode = false;
@@ -44,7 +44,7 @@ class Graph
             DrawIntersection(ref g);
         }
 
-        if (m_isPathGenerated)
+        if (m_isShortestPathFind)
         {
             DisplayPath(ref g);
         }
@@ -107,7 +107,7 @@ class Graph
 
         m_isFullGraphGenerated = false;
         m_isStartAndEndGenerated = false;
-        m_isPathGenerated = false;
+        m_isShortestPathFind = false;
     }
 
     public void Clear()
@@ -118,13 +118,14 @@ class Graph
         m_ShortesPathVertexIndexes.Clear();
 
         m_isFullGraphGenerated = false;
-        m_isPathGenerated = false;
+        m_isShortestPathFind = false;
         m_isStartAndEndGenerated = false;
 
         foreach(CircleObstacle co in m_GraphObstructions)
         {
             co.m_isEdgesGenerated = false;
-            co.m_VertexIndexes.Clear();
+            co.m_ClockWiseVertexIndexes.Clear();
+            co.m_CounterClockWiseVertexIndexes.Clear();
         }
     }
 
@@ -163,10 +164,10 @@ class Graph
             float sqrDist = dist * dist;
             float a = (sqrObsRad - sqrInterIRad + sqrDist) / (2 * dist);
 
-            float teta = (float)Math.Acos(a / obs.m_radius);
+            float teta = MathF.Acos(a / obs.m_radius);
 
-            PointF vecAB = new PointF(intersectObs.m_center.X - obs.m_center.X, intersectObs.m_center.Y - obs.m_center.Y);
-            float vecABLenght = BaseMath.VectorLenght(in vecAB);
+            PointF vecAB = new (intersectObs.m_center.X - obs.m_center.X, intersectObs.m_center.Y - obs.m_center.Y);
+            float vecABLenght = BaseMath.VectorLenght(vecAB);
             vecAB.X /= vecABLenght;
             vecAB.Y /= vecABLenght;
 
@@ -174,8 +175,8 @@ class Graph
             c.X += vecAB.X * obs.m_radius;
             c.Y += vecAB.Y * obs.m_radius;
 
-            PointF first = BaseMath.RotatePoint(ref c, ref obs.m_center, teta);
-            PointF second = BaseMath.RotatePoint(ref c, ref obs.m_center, -teta);
+            PointF first = BaseMath.RotatePoint(c, obs.m_center, teta);
+            PointF second = BaseMath.RotatePoint(c, obs.m_center, -teta);
 
             obs.m_Entersections.Add(new PointFPair(first, second));
             obs.m_IntersectCircleIndexes.Add(interIndex);
@@ -200,41 +201,61 @@ class Graph
 
     private void DisplayPath(ref Graphics g)
     {
-        // Проходимся по всем вершинам, кроме последней - это начальная точка
-        for (int i = 0; i < m_ShortesPathVertexIndexes.Count - 1; ++i)
-        {
-            int currVertexIndex = m_ShortesPathVertexIndexes[i];
-            int nextVertexIndex = m_ShortesPathVertexIndexes[i + 1];
+        int currVertexIndex = 1;
 
+        PointF OX = new(1, 0);
+
+        while (currVertexIndex != 0)
+        {
             GraphVertex currentVertex = m_GraphVertexes[currVertexIndex];
-            GraphVertex nextVertex = m_GraphVertexes[nextVertexIndex];
+            int prevVertexIndex = currentVertex.m_parentVertexIndex;
+            GraphVertex previousVertex = m_GraphVertexes[prevVertexIndex];
 
             // Отрисовываем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
-            if (currentVertex.m_obstacleIndex == nextVertex.m_obstacleIndex && currVertexIndex != 1 && currVertexIndex != 0)
+            if (currentVertex.m_obstacleIndex == previousVertex.m_obstacleIndex && prevVertexIndex != 0)
             {
-                CircleObstacle currentObst = m_GraphObstructions[currentVertex.m_obstacleIndex];
-                PointF center = currentObst.m_center;
+                CircleObstacle obs = m_GraphObstructions[currentVertex.m_obstacleIndex];
+                PointF center = obs.m_center;
+                float radius = obs.m_radius;
 
-                PointF OX = new (1, 0);
+                PointF firstVector = new(previousVertex.m_position.X - center.X, previousVertex.m_position.Y - center.Y);
+                PointF secondVector = new(currentVertex.m_position.X - center.X, currentVertex.m_position.Y - center.Y);
 
-                PointF firstVector = new (nextVertex.m_position.X - center.X, nextVertex.m_position.Y - center.Y);
-                PointF secondVector = new (currentVertex.m_position.X - center.X, currentVertex.m_position.Y - center.Y);
+                //float startAngleRad = BaseMath.AngleBetweenVectors(ref OX, ref firstVector);
+                //float sweepAngleRad = BaseMath.AngleBetweenVectors(ref firstVector, ref secondVector);
 
-                float startAngleRad = BaseMath.AngleBetweenVectors(ref OX, ref firstVector);
-                float sweepAngleRad = BaseMath.AngleBetweenVectors(ref firstVector, ref secondVector);
+                float startAngleRad;
+                float sweepAngleRad;
+                if (previousVertex.m_direction == 1)
+                {
+                    startAngleRad = BaseMath.ClockwiseAngleBetweenVectors(OX, firstVector);
+                    sweepAngleRad = BaseMath.ClockwiseAngleBetweenVectors(firstVector, secondVector);
+                }
+                else
+                {
+                    startAngleRad = BaseMath.CounterClockwiseAngleBetweenVectors(OX, firstVector);
+                    sweepAngleRad = BaseMath.CounterClockwiseAngleBetweenVectors(firstVector, secondVector);
+                }
 
                 float startAngle = BaseMath.To_degre(startAngleRad);
                 float sweepAngle = BaseMath.To_degre(sweepAngleRad);
 
-                g.DrawArc(m_DisplayPathPen, center.X - currentObst.m_radius, center.Y - currentObst.m_radius,
-                    currentObst.m_radius * 2, currentObst.m_radius * 2, startAngle, sweepAngle);
+                g.DrawArc(m_DisplayPathPen,
+                    center.X - radius, center.Y - radius,
+                    radius * 2, radius * 2,
+                    startAngle, sweepAngle
+                    );
             }
             else
             {
-                g.FillEllipse(m_VertexBrush, currentVertex.m_position.X - 3, currentVertex.m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-                g.FillEllipse(m_VertexBrush, nextVertex.m_position.X - 3, nextVertex.m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-                g.DrawLine(m_DisplayPathPen, currentVertex.m_position, nextVertex.m_position);
+                g.DrawLine(m_DisplayPathPen, previousVertex.m_position, currentVertex.m_position);
+                g.FillEllipse(m_VertexBrush, currentVertex.m_position.X - 3, currentVertex.m_position.Y - m_VertexDispalayDiameter / 2,
+                    m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                g.FillEllipse(m_VertexBrush, previousVertex.m_position.X - 3, previousVertex.m_position.Y - m_VertexDispalayDiameter / 2,
+                    m_VertexDispalayDiameter, m_VertexDispalayDiameter);
             }
+
+            currVertexIndex = prevVertexIndex;
         }
     }
 
@@ -256,8 +277,8 @@ class Graph
             if (m_GraphVertexes[edge.m_firstVertexIndex].m_obstacleIndex == m_GraphVertexes[edge.m_secondVertexIndex].m_obstacleIndex)
                 continue;
 
-            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - 3, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_secondVertexIndex].m_position.X - 3, m_GraphVertexes[edge.m_secondVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_secondVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_secondVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
 
             g.DrawLine(new Pen(Color.Gray, 2), m_GraphVertexes[edge.m_firstVertexIndex].m_position, m_GraphVertexes[edge.m_secondVertexIndex].m_position);
         }
@@ -268,10 +289,13 @@ class Graph
         foreach (CircleObstacle obs in m_GraphObstructions)
         {
             List<PointFPair> lpfp = obs.m_Entersections;
+
+            g.FillEllipse(new SolidBrush(Color.Red), obs.m_center.X - m_VertexDispalayDiameter / 8, obs.m_center.Y - m_VertexDispalayDiameter / 8, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+
             foreach (PointFPair pfp in lpfp)
             {
-                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item1.X - 3, pfp.Item1.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item2.X - 3, pfp.Item2.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item1.X - m_VertexDispalayDiameter / 4, pfp.Item1.Y - m_VertexDispalayDiameter / 4, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item2.X - m_VertexDispalayDiameter / 4, pfp.Item2.Y - m_VertexDispalayDiameter / 4, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
             }
 
         }
@@ -281,14 +305,13 @@ class Graph
 
     public bool RunA()
     {
-        if (m_isPathGenerated)
+        if (m_isShortestPathFind)
             return true;
 
         if (!m_isStartEntered || !m_isEndEntered)
             return false;
 
         VertexPriorityQueue pq = new VertexPriorityQueue();
-        //MyPriorityQueue Q = new MyPriorityQueue();
 
         if (!m_isStartAndEndGenerated)
             CreatStartAndEndVertexesAndEdges();
@@ -305,7 +328,7 @@ class Graph
             // Если данная вершина является конечной точкой, то заканчиваем
             if (currentVertex == m_GraphVertexes[1])
             {
-                FormPath();
+                m_isShortestPathFind = true;
                 return true;
             }
 
@@ -323,18 +346,8 @@ class Graph
                 // Длина пути до индендентной вершины = длина пути до текущей + длина ребра
                 float toNextVertexPathLength = currentVertex.m_G + currentEdge.m_lenght;
 
-                int nextVertexIndex;
-                int currentVertexIndex;
-                if (m_GraphVertexes[currentEdge.m_firstVertexIndex] == currentVertex)
-                {
-                    nextVertexIndex = currentEdge.m_secondVertexIndex;
-                    currentVertexIndex = currentEdge.m_firstVertexIndex;
-                }
-                else
-                {
-                    currentVertexIndex = currentEdge.m_secondVertexIndex;
-                    nextVertexIndex = currentEdge.m_firstVertexIndex;
-                }
+                int currentVertexIndex = currentEdge.m_firstVertexIndex;
+                int nextVertexIndex = currentEdge.m_secondVertexIndex;
 
                 GraphVertex nextVertex = m_GraphVertexes[nextVertexIndex];
 
@@ -349,46 +362,34 @@ class Graph
                 }
             }
         }
-
         // Не удалось достич конечной точки из стартовой
         return false;
-    }
-
-    private void FormPath()
-    {
-        int currentVertexIndex = 1;
-        while (currentVertexIndex != -1)
-        {
-            m_ShortesPathVertexIndexes.Add(currentVertexIndex);
-            currentVertexIndex = m_GraphVertexes[currentVertexIndex].m_parentVertexIndex;
-        }
-
-        m_isPathGenerated = true;
     }
 
     private void CreatStartAndEndVertexesAndEdges()
     {
         PointF placeholder = new();
-        m_GraphVertexes.Add(new GraphVertex(placeholder, -1, placeholder));
-        m_GraphVertexes.Add(new GraphVertex(placeholder, -1, placeholder));
+        // У старотовой и конечной точек нет направления
+        m_GraphVertexes.Add(new GraphVertex(placeholder, -1, 0, placeholder));
+        m_GraphVertexes.Add(new GraphVertex(placeholder, -1, 0, placeholder));
 
         if (m_isStartEntered)
         {
             // index 0 - Начальная точка
-            m_GraphVertexes[0] = new GraphVertex(m_StartPoint, -1, m_EndPoint);
+            m_GraphVertexes[0] = new GraphVertex(m_StartPoint, -1, 0, m_EndPoint);
             m_GraphVertexes[0].setParent(-1, 0);
 
             if (PointFree(m_StartPoint))
-                GenerateEdgesFromPointToAll(0);
+                CreateEdgesAndVertexesFromVertex(0);
         }
 
         if (m_isEndEntered)
         {
             // index 1 - конечная точка
-            m_GraphVertexes[1] = new GraphVertex(m_EndPoint, -1, m_EndPoint);
+            m_GraphVertexes[1] = new GraphVertex(m_EndPoint, -1, 0, m_EndPoint);
 
             if (PointFree(m_EndPoint))
-                GenerateEdgesFromPointToAll(1);
+                CreateEdgesAndVertexesFromVertex(1);
         }
 
         if (m_isStartEntered && m_isEndEntered)
@@ -401,10 +402,8 @@ class Graph
                 m_GraphEdges.Add(startToEnd);
 
                 m_GraphVertexes[0].m_incidentEdgeIndexes.Add(startToEndEdgeIndex);
-                m_GraphVertexes[1].m_incidentEdgeIndexes.Add(startToEndEdgeIndex);
             }
         }
-
         m_isStartAndEndGenerated = true;
     }
 
@@ -418,38 +417,296 @@ class Graph
         return true;
     }
 
-    // Только для начальной и конечной точки маршрута
-    private void GenerateEdgesFromPointToAll(int vertexIndex)
+    private void CreateEdgesAndVertexesFromVertex(int vertexIndex)
     {
-        PointF point = m_GraphVertexes[vertexIndex].m_position;
+        GraphVertex vertex = m_GraphVertexes[vertexIndex];
+        PointF point = vertex.m_position;
+
         for (int i = 0; i < m_GraphObstructions.Count; ++i)
         {
-            if (m_GraphObstructions[i].m_isBlocked)
+            CircleObstacle obs = m_GraphObstructions[i];
+
+            if (obs.m_isBlocked)
                 continue;
 
-            List<Edge> edges = ExternalBitangents(point, 0, m_GraphObstructions[i].m_center, m_GraphObstructions[i].m_radius);
+            List<Edge> edges = BaseMath.InternalBitangents(point, 0, obs.m_center, obs.m_radius);
 
-            foreach (Edge e in edges)
+            for(int j=0; j < edges.Count; ++j)
             {
-                if (!IsObstructionsBlockEdge(e, -1, i))
+                Edge e = edges[j];
+
+                if (IsObstructionsBlockEdge(e, -1, i))
+                    continue;
+
+                PointF secondPoint = e.m_second;
+
+                int secondClockIndex = AddGraphVertex(secondPoint, i, 1);
+                GraphVertex secondClock = m_GraphVertexes[secondClockIndex];
+
+                int secondCountClockIndex = AddGraphVertex(secondPoint, i, -1);
+                GraphVertex secondCountClock = m_GraphVertexes[secondCountClockIndex];
+
+                obs.m_ClockWiseVertexIndexes.Add(secondClockIndex);
+                obs.m_CounterClockWiseVertexIndexes.Add(secondCountClockIndex);
+
+                float edgeLenght = BaseMath.Distance(point, secondPoint);
+
+                int ftosEdgeIndex = m_GraphEdges.Count;
+                vertex.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+                GraphEdge ftosEdge;
+                if (j == 0)
+                    ftosEdge = new(vertexIndex, secondCountClockIndex, edgeLenght);
+                else
+                    ftosEdge = new(vertexIndex, secondClockIndex, edgeLenght);
+                m_GraphEdges.Add(ftosEdge);
+
+                int stofEdgeIndex = m_GraphEdges.Count;
+                GraphEdge stofEdge;
+                if (j == 0)
                 {
-                    int newEdgeIndex = m_GraphEdges.Count;
-
-                    GraphVertex newVertex = new GraphVertex(e.m_second, i, point);
-                    newVertex.m_incidentEdgeIndexes.Add(newEdgeIndex);
-
-                    m_GraphVertexes[vertexIndex].m_incidentEdgeIndexes.Add(newEdgeIndex);
-
-                    int newVertexIndex = m_GraphVertexes.Count;
-                    m_GraphVertexes.Add(newVertex);
-
-                    m_GraphObstructions[i].m_VertexIndexes.Add(newVertexIndex);
-
-                    GraphEdge newEdge = new GraphEdge(vertexIndex, newVertexIndex, BaseMath.Distance(in point, in e.m_second));
-
-                    m_GraphEdges.Add(newEdge);
+                    stofEdge = new(secondClockIndex, vertexIndex, edgeLenght);
+                    secondClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
                 }
+                else
+                {
+                    stofEdge = new(secondCountClockIndex, vertexIndex, edgeLenght);
+                    secondCountClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
+                }
+                m_GraphEdges.Add(stofEdge);
             }
+        }
+    }
+
+    private void CreateExternalEdgesAndVertexes(int firstObsIndex, int secondObsIndex)
+    {
+        CircleObstacle firstObs = m_GraphObstructions[firstObsIndex];
+        CircleObstacle secondObs = m_GraphObstructions[secondObsIndex];
+
+        List<Edge> edges = BaseMath.ExternalBitangents(firstObs, secondObs);
+
+        for(int i =0; i < edges.Count; ++i)
+        {
+            Edge e = edges[i];
+            if (IsObstructionsBlockEdge(e, firstObsIndex, secondObsIndex))
+                continue;
+
+            PointF firstPoint = e.m_first;
+            PointF secondPoint = e.m_second;
+
+            int firstClockIndex = AddGraphVertex(firstPoint, firstObsIndex, 1);
+            GraphVertex firstClock = m_GraphVertexes[firstClockIndex];
+
+            int firstCountClockIndex = AddGraphVertex(firstPoint, firstObsIndex, -1);
+            GraphVertex firstCountClock = m_GraphVertexes[firstCountClockIndex];
+
+            int secondClockIndex = AddGraphVertex(secondPoint, secondObsIndex, 1);
+            GraphVertex secondClock = m_GraphVertexes[secondClockIndex];
+
+            int secondCountClockIndex = AddGraphVertex(secondPoint, secondObsIndex, -1);
+            GraphVertex secondCountClock = m_GraphVertexes[secondCountClockIndex];
+
+            firstObs.m_ClockWiseVertexIndexes.Add(firstClockIndex);
+            firstObs.m_CounterClockWiseVertexIndexes.Add(firstCountClockIndex);
+
+            secondObs.m_ClockWiseVertexIndexes.Add(secondClockIndex);
+            secondObs.m_CounterClockWiseVertexIndexes.Add(secondCountClockIndex);
+
+            float edgeLenght = BaseMath.Distance(firstPoint, secondPoint);
+
+            int ftosEdgeIndex = m_GraphEdges.Count;
+            GraphEdge ftosEdge;
+            if (i == 0)
+            {
+                ftosEdge = new(firstClockIndex, secondClockIndex, edgeLenght);
+                firstClock.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+            }
+            else
+            {
+                ftosEdge = new(firstCountClockIndex, secondCountClockIndex, edgeLenght);
+                firstCountClock.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+            }
+            m_GraphEdges.Add(ftosEdge);
+
+            int stofEdgeIndex = m_GraphEdges.Count;
+            GraphEdge stofEdge;
+            if (i == 0)
+            {
+                stofEdge = new(secondCountClockIndex, firstCountClockIndex, edgeLenght);
+                secondCountClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
+            }
+            else
+            {
+                stofEdge = new(secondClockIndex, firstClockIndex, edgeLenght);
+                secondClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
+            }
+            m_GraphEdges.Add(stofEdge);
+        }
+    }
+
+    private int AddGraphVertex(PointF position, int obstacleIndex, int direction)
+    {
+        int vertexIndex = m_GraphVertexes.Count;
+        GraphVertex vertex = new(position, obstacleIndex, direction, m_EndPoint);
+        m_GraphVertexes.Add(vertex);
+
+        return vertexIndex;
+    }
+
+    private void CreateInternalEdgesAndVertexes(int firstObsIndex, int secondObsIndex)
+    {
+        CircleObstacle firstObs = m_GraphObstructions[firstObsIndex];
+        CircleObstacle secondObs = m_GraphObstructions[secondObsIndex];
+
+        List<Edge> edges = BaseMath.InternalBitangents(firstObs, secondObs);
+
+        for (int i = 0; i < edges.Count; ++i)
+        {
+            Edge e = edges[i];
+            if (IsObstructionsBlockEdge(e, firstObsIndex, secondObsIndex))
+                continue;
+
+            PointF firstPoint = e.m_first;
+            PointF secondPoint = e.m_second;
+
+            int firstClockIndex = AddGraphVertex(firstPoint, firstObsIndex, 1);
+            GraphVertex firstClock = m_GraphVertexes[firstClockIndex];
+
+            int firstCountClockIndex = AddGraphVertex(firstPoint, firstObsIndex, -1);
+            GraphVertex firstCountClock = m_GraphVertexes[firstCountClockIndex];
+
+            int secondClockIndex = AddGraphVertex(secondPoint, secondObsIndex, 1);
+            GraphVertex secondClock = m_GraphVertexes[secondClockIndex];
+
+            int secondCountClockIndex = AddGraphVertex(secondPoint, secondObsIndex, -1);
+            GraphVertex secondCountClock = m_GraphVertexes[secondCountClockIndex];
+
+            firstObs.m_ClockWiseVertexIndexes.Add(firstClockIndex);
+            firstObs.m_CounterClockWiseVertexIndexes.Add(firstCountClockIndex);
+
+            secondObs.m_ClockWiseVertexIndexes.Add(secondClockIndex);
+            secondObs.m_CounterClockWiseVertexIndexes.Add(secondCountClockIndex);
+
+            float edgeLenght = BaseMath.Distance(firstPoint, secondPoint);
+
+            int ftosEdgeIndex = m_GraphEdges.Count;
+            GraphEdge ftosEdge;
+            if (i == 0)
+            {
+                ftosEdge = new(firstClockIndex, secondCountClockIndex, edgeLenght);
+                firstClock.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+            }
+            else
+            {
+                ftosEdge = new(firstCountClockIndex, secondClockIndex, edgeLenght);
+                firstCountClock.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+            }
+            m_GraphEdges.Add(ftosEdge);
+
+            int stofEdgeIndex = m_GraphEdges.Count;
+            GraphEdge stofEdge;
+            if (i == 0)
+            {
+                stofEdge = new(secondClockIndex, firstCountClockIndex, edgeLenght);
+                secondClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
+            }
+            else
+            {
+                stofEdge = new(secondCountClockIndex, firstClockIndex, edgeLenght);
+                secondCountClock.m_incidentEdgeIndexes.Add(stofEdgeIndex);
+            }
+            m_GraphEdges.Add(stofEdge);
+        }
+    }
+
+    private void CreateHuggingEdges(int obstacleIndex)
+    {
+        CircleObstacle obs = m_GraphObstructions[obstacleIndex];
+
+        List<int> clockwiseVertexes = obs.m_ClockWiseVertexIndexes;
+        List<int> counterClockwiseVertexes = obs.m_CounterClockWiseVertexIndexes;
+
+        for (int i = 0; i < clockwiseVertexes.Count; ++i)
+        {
+            int firstVertexIndex = clockwiseVertexes[i];
+            for (int j = i + 1; j < clockwiseVertexes.Count; ++j)
+            {
+                int secondVertexIndex = clockwiseVertexes[j];
+                CreateHuggingEdges(obstacleIndex, firstVertexIndex, secondVertexIndex);
+            }
+        }
+
+        for (int i = 0; i < counterClockwiseVertexes.Count; ++i)
+        {
+            int firstVertexIndex = counterClockwiseVertexes[i];
+            for (int j = i + 1; j < counterClockwiseVertexes.Count; ++j)
+            {
+                int secondVertexIndex = counterClockwiseVertexes[j];
+                CreateHuggingEdges(obstacleIndex, firstVertexIndex, secondVertexIndex);
+            }
+        }
+    }
+
+    private void CreateHuggingEdges(int obstacleIndex, int firstVertexIndex, int secondVertexIndex)
+    {
+        CircleObstacle obs = m_GraphObstructions[obstacleIndex];
+        float radius = obs.m_radius;
+
+        GraphVertex firstVertex = m_GraphVertexes[firstVertexIndex];
+        GraphVertex secondVertex = m_GraphVertexes[secondVertexIndex];
+
+        PointF firstPoint = firstVertex.m_position;
+        PointF secondPoint = secondVertex.m_position;
+
+        int direction = firstVertex.m_direction;
+
+        float ftosAngle = BaseMath.AngleBetweenPointsOnCircle(obs, firstPoint, secondPoint, direction);
+        float stofAngle = BaseMath.AngleBetweenPointsOnCircle(obs, secondPoint, firstPoint, direction);
+
+        bool ftosEdgeAchivable = true;
+        bool stofEdgeAchivable = true;
+
+        foreach (PointFPair bp in obs.m_Entersections)
+        {
+            PointF bpf = bp.Item1;
+            PointF bps = bp.Item2;
+
+            if (ftosEdgeAchivable)
+            {
+                float ftobpfAngle = BaseMath.AngleBetweenPointsOnCircle(obs, firstPoint, bpf, direction);
+                float ftobpsAngle = BaseMath.AngleBetweenPointsOnCircle(obs, firstPoint, bps, direction);
+
+                if (BaseMath.CompareAngles(ftosAngle, ftobpfAngle) || BaseMath.CompareAngles(ftosAngle, ftobpsAngle))
+                    ftosEdgeAchivable = false;
+            }
+
+            if (stofEdgeAchivable)
+            {
+                float stobpfAngle = BaseMath.AngleBetweenPointsOnCircle(obs, secondPoint, bpf, direction);
+                float stobpsAngle = BaseMath.AngleBetweenPointsOnCircle(obs, secondPoint, bps, direction);
+
+                if (BaseMath.CompareAngles(stofAngle, stobpfAngle) || BaseMath.CompareAngles(stofAngle, stobpsAngle))
+                    stofEdgeAchivable = false;
+
+            }
+
+            if (!(ftosEdgeAchivable || stofEdgeAchivable))
+                break;
+        }
+
+        if (ftosEdgeAchivable)
+        {
+            int ftosEdgeIndex = m_GraphEdges.Count;
+            GraphEdge ftosHuggingEdge = new(firstVertexIndex, secondVertexIndex, BaseMath.CircleArcLenght(radius, ftosAngle));
+            m_GraphEdges.Add(ftosHuggingEdge);
+            firstVertex.m_incidentEdgeIndexes.Add(ftosEdgeIndex);
+        }
+
+        if (stofEdgeAchivable)
+        {
+            int stofEdgeIndex = m_GraphEdges.Count;
+            GraphEdge stofHuggingEdge = new(secondVertexIndex, firstVertexIndex, BaseMath.CircleArcLenght(radius, stofAngle));
+            m_GraphEdges.Add(stofHuggingEdge);
+            secondVertex.m_incidentEdgeIndexes.Add(stofEdgeIndex);
         }
     }
 
@@ -463,312 +720,30 @@ class Graph
             if (i == obstacleIndex || m_GraphObstructions[i].m_isEdgesGenerated || m_GraphObstructions[i].m_isBlocked)
                 continue;
 
-            List<Edge> surfing = SurfingEdges(obstacleIndex, i);
+            CreateExternalEdgesAndVertexes(obstacleIndex, i);
 
-            foreach (Edge sEdge in surfing)
-            {
-                int currentEdgeIndex = m_GraphEdges.Count;
-
-                GraphVertex firstVertex = new GraphVertex(sEdge.m_first, obstacleIndex, m_EndPoint);
-                firstVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
-                int firstVertexIndex = m_GraphVertexes.Count;
-                m_GraphVertexes.Add(firstVertex);
-                m_GraphObstructions[obstacleIndex].m_VertexIndexes.Add(firstVertexIndex);
-
-                GraphVertex secondVertex = new GraphVertex(sEdge.m_second, i, m_EndPoint);
-                secondVertex.m_incidentEdgeIndexes.Add(currentEdgeIndex);
-                int secondVertexIndex = m_GraphVertexes.Count;
-                m_GraphVertexes.Add(secondVertex);
-                m_GraphObstructions[i].m_VertexIndexes.Add(secondVertexIndex);
-
-                GraphEdge newEdgeFS = new GraphEdge(firstVertexIndex, secondVertexIndex,
-                    BaseMath.Distance(in firstVertex.m_position, in secondVertex.m_position));
-                m_GraphEdges.Add(newEdgeFS);
-            }
+            //Проверяем, что препятствия не пересекаются
+            int intersectIndex = m_GraphObstructions[obstacleIndex].m_IntersectCircleIndexes.IndexOf(i);
+            // Тогда генерируем внутренние касательные
+            if (intersectIndex == -1)
+                CreateInternalEdgesAndVertexes(obstacleIndex, i);
         }
 
-        List<GraphEdge> hugging = CreateHuggingEdges(obstacleIndex);
-
-        foreach (GraphEdge hEdge in hugging)
-        {
-            int currentEdgeIndex = m_GraphEdges.Count;
-            m_GraphEdges.Add(hEdge);
-
-            m_GraphVertexes[hEdge.m_firstVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
-            m_GraphVertexes[hEdge.m_secondVertexIndex].m_incidentEdgeIndexes.Add(currentEdgeIndex);
-        }
-
+        CreateHuggingEdges(obstacleIndex);
         m_GraphObstructions[obstacleIndex].m_isEdgesGenerated = true;
     }
 
-    private static List<Edge> InternalBitangents(PointF centerA, float rA, PointF centerB, float rB)
-    {
-        float Q = (float)Math.Acos((double)(rA + rB) / BaseMath.Distance(in centerA, in centerB));
-
-        float vectABX = centerB.X - centerA.X;
-        float vectABY = centerB.Y - centerA.Y;
-
-        PointF VectAB = new(vectABX, vectABY);
-
-        float vectABLen = BaseMath.VectorLenght(in VectAB);
-
-        VectAB.X /= vectABLen;
-        VectAB.Y /= vectABLen;
-
-        PointF G = new(centerA.X + rA * VectAB.X, centerA.Y + rA * VectAB.Y);
-
-        PointF H = new(centerB.X + rB * (-VectAB.X), centerB.Y + rB * (-VectAB.Y));
-
-        PointF C = BaseMath.RotatePoint(ref G, ref centerA, -Q);
-        PointF D = BaseMath.RotatePoint(ref G, ref centerA, Q);
-
-        PointF E = BaseMath.RotatePoint(ref H, ref centerB, Q);
-        PointF F = BaseMath.RotatePoint(ref H, ref centerB, -Q);
-        List<Edge> list = new()
-        {
-                new Edge(C, F),
-                new Edge(D, E)
-            };
-
-        return list;
-    }
-
-    //private List<Edge> internalBitangents(Circle a, Circle b)
-    //{
-    //    PointF centerA = a.m_center;
-    //    PointF centerB = b.m_center;
-
-    //    float rA = a.m_radius;
-    //    float rB = b.m_radius;
-    //    return internalBitangents(centerA, rA, centerB, rB);
-    //}
-
-    private bool IsObstructionsBlockEdge(Edge edge, int firstIgnore, int secondIgnore)
+    private bool IsObstructionsBlockEdge(in Edge edge, int firstIgnore, int secondIgnore)
     {
         PointF edgeStart = edge.m_first;
         PointF edgeEnd = edge.m_second;
-
         for (int i = 0; i < m_GraphObstructions.Count; ++i)
         {
             if (i == firstIgnore || i == secondIgnore)
                 continue;
-
-            if (Is_Block(m_GraphObstructions[i], edgeStart, edgeEnd))
+            if (BaseMath.Is_Block(m_GraphObstructions[i], edgeStart, edgeEnd))
                 return true;
         }
         return false;
-    }
-
-    private List<Edge> SurfingEdges(int firstObstIndex, int secondObstIndex)
-    {
-        PointF centerA = m_GraphObstructions[firstObstIndex].m_center;
-        float rA = m_GraphObstructions[firstObstIndex].m_radius;
-
-        PointF centerB = m_GraphObstructions[secondObstIndex].m_center;
-        float rB = m_GraphObstructions[secondObstIndex].m_radius;
-
-        List<Edge> edges = new();
-
-        // Проверяем, что препятствия не пересекаются
-        int intersectIndex = m_GraphObstructions[firstObstIndex].m_IntersectCircleIndexes.IndexOf(secondObstIndex);
-        // Тогда генерируем внутренние касательные
-        if (intersectIndex == -1)
-        {
-            List<Edge> internalBit = InternalBitangents(centerA, rA, centerB, rB);
-
-            for (int i = 0; i < internalBit.Count; ++i)
-            {
-                if (!IsObstructionsBlockEdge(internalBit[i], firstObstIndex, secondObstIndex))
-                    edges.Add(internalBit[i]);
-            }
-        }
-
-        List<Edge> externalBit = ExternalBitangents(centerA, rA, centerB, rB);
-
-        for (int i = 0; i < externalBit.Count; ++i)
-        {
-            if (!IsObstructionsBlockEdge(externalBit[i], firstObstIndex, secondObstIndex))
-                edges.Add(externalBit[i]);
-        }
-
-        return edges;
-    }
-
-    /*private List<Edge> surfingEdges(int circleAIndex, int circleBIndex)
-    {
-        PointF centerA = m_Obstructions[circleAIndex].m_center;
-        float rA = m_Obstructions[circleAIndex].m_radius;
-
-        PointF centerB = m_Obstructions[circleBIndex].m_center;
-        float rB = m_Obstructions[circleBIndex].m_radius;
-
-        return surfingEdges(centerA, rA, centerB, rB, circleAIndex, circleBIndex);
-    }*/
-
-    private GraphEdge CreateHuggingEdge(int obstacleIndex, int firstVertexIndex, int secondVertexIndex)
-    {
-        float edgeLenght = CalculateHuggingEdgeLenght(
-            m_GraphObstructions[obstacleIndex].m_center,
-            m_GraphObstructions[obstacleIndex].m_radius,
-            m_GraphVertexes[firstVertexIndex].m_position,
-            m_GraphVertexes[secondVertexIndex].m_position
-            );
-
-        GraphEdge edge = new GraphEdge(firstVertexIndex, secondVertexIndex, edgeLenght);
-        return edge;
-    }
-
-    private List<GraphEdge> CreateHuggingEdges(int obstacleIndex)
-    {
-        List<GraphEdge> edges = new();
-        List<int> obstacleVertexes = m_GraphObstructions[obstacleIndex].m_VertexIndexes;
-
-        PointF center = m_GraphObstructions[obstacleIndex].m_center;
-
-        for (int i = 0; i < obstacleVertexes.Count; ++i)
-            for (int j = i + 1; j < obstacleVertexes.Count; ++j)
-            {
-                int firstVertexIndex = obstacleVertexes[i];
-                int secondVertexIndex = obstacleVertexes[j];
-
-                bool isAchievable = true;
-
-                PointF startV = new(
-                    m_GraphVertexes[firstVertexIndex].m_position.X - center.X,
-                    m_GraphVertexes[firstVertexIndex].m_position.Y - center.Y
-                );
-
-                PointF endV = new(
-                    m_GraphVertexes[secondVertexIndex].m_position.X - center.X,
-                    m_GraphVertexes[secondVertexIndex].m_position.Y - center.Y
-                );
-
-                float edgeAngle = BaseMath.AngleBetweenVectors(ref startV, ref endV);
-
-                foreach (PointFPair pfp in m_GraphObstructions[obstacleIndex].m_Entersections)
-                {
-                    PointF ppfV = new(
-                        pfp.Item1.X - center.X,
-                        pfp.Item1.Y - center.Y
-                    );
-
-                    PointF ppsV = new(
-                        pfp.Item2.X - center.X,
-                        pfp.Item2.Y - center.Y
-                    );
-
-                    float toPpfAngle = BaseMath.AngleBetweenVectors(ref startV, ref ppfV);
-                    float toPpsAngle = BaseMath.AngleBetweenVectors(ref startV, ref ppsV);
-
-                    if (CompareAngles(edgeAngle, toPpfAngle) || CompareAngles(edgeAngle, toPpsAngle))
-                    {
-                        isAchievable = false;
-                        break;
-                    }
-
-                }
-
-                if (isAchievable)
-                    edges.Add(CreateHuggingEdge(obstacleIndex, firstVertexIndex, secondVertexIndex));
-            }
-
-        return edges;
-    }
-
-    private static bool CompareAngles(float fAngle, float sAngle)
-    {
-        // Если углы имеют одинаковый знак
-        if (fAngle * sAngle > 0)
-        {
-            return Math.Abs(fAngle) > Math.Abs(sAngle);
-        }
-
-        return false;
-    }
-
-    //private List<Edge> externalBitangents(Circle a, Circle b)
-    //{
-    //    PointF centerA = a.m_center;
-    //    PointF centerB = b.m_center;
-
-    //    float rA = a.m_radius;
-    //    float rB = b.m_radius;
-
-    //    return externalBitangents(centerA, rA, centerB, rB);
-    //}
-
-    private static List<Edge> ExternalBitangents(PointF centerA, float rA, PointF centerB, float rB)
-    {
-        float Q = (float)Math.Acos((double)Math.Abs(rA - rB) / BaseMath.Distance(in centerA, in centerB));
-
-        float vectBLX = centerB.X - centerA.X;
-        float vectBLY = centerB.Y - centerA.Y;
-
-        if (rB > rA)
-        {
-            vectBLX *= -1;
-            vectBLY *= -1;
-        }
-
-        // вектор из центра большего препятствия в центр меньшего, если равны то не важно
-        PointF VectBL = new(vectBLX, vectBLY);
-
-        float vectBLLen = BaseMath.VectorLenght(in VectBL);
-
-        VectBL.X /= vectBLLen;
-        VectBL.Y /= vectBLLen;
-
-        PointF G = new(centerA.X + rA * VectBL.X, centerA.Y + rA * VectBL.Y);
-
-        PointF H = new(centerB.X + rB * VectBL.X, centerB.Y + rB * VectBL.Y);
-
-        PointF C = BaseMath.RotatePoint(ref G, ref centerA, -Q);
-        PointF D = BaseMath.RotatePoint(ref G, ref centerA, Q);
-
-        PointF E = BaseMath.RotatePoint(ref H, ref centerB, Q);
-        PointF F = BaseMath.RotatePoint(ref H, ref centerB, -Q);
-        List<Edge> list = new()
-        {
-            new Edge(C, F),
-            new Edge(D, E)
-        };
-
-        return list;
-    }
-
-    private static bool Is_Block(Circle obstruct, PointF A, PointF B)
-    {
-        PointF C = obstruct.m_center;
-
-        float u = ((C.X - A.X) * (B.X - A.X) + (C.Y - A.Y) * (B.Y - A.Y)) / BaseMath.Square_distance(in B, in A);
-
-        float clamp_u = BaseMath.Clamp(u, 0, 1);
-
-        float Ex = A.X + clamp_u * (B.X - A.X);
-        float Ey = A.Y + clamp_u * (B.Y - A.Y);
-
-        PointF E = new PointF(Ex, Ey);
-
-        float Sd = BaseMath.Square_distance(in E, in C);
-
-        return Sd < (obstruct.m_radius * obstruct.m_radius);
-    }
-
-    private static float CalculateHuggingEdgeLenght(PointF circleCenter, float circleRadius, PointF firstPoint, PointF secondPoint)
-    {
-        PointF firstVector = new(
-            firstPoint.X - circleCenter.X,
-            firstPoint.Y - circleCenter.Y
-        );
-
-        PointF secondVector = new(
-            secondPoint.X - circleCenter.X,
-            secondPoint.Y - circleCenter.Y
-        );
-
-        float angle = Math.Abs(BaseMath.AngleBetweenVectors(ref firstVector, ref secondVector));
-
-        float huggingEdgeLenght = circleRadius * angle;
-        return huggingEdgeLenght;
     }
 }
