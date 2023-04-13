@@ -2,8 +2,7 @@
 
 class VertexPriorityQueue
 {
-
-    List<GraphVertex> m_Vertexes = new List<GraphVertex>();
+    private List<GraphVertex> m_Vertexes = new ();
     public VertexPriorityQueue(){}
 
     public int Find(in GraphVertex v)
@@ -26,8 +25,7 @@ class VertexPriorityQueue
         if (Empty())
             throw new IndexOutOfRangeException();
 
-        //GraphVertex t = m_Vertexes.Select((x, i) => (x.m_F, x)).Min().x;
-        GraphVertex t = m_Vertexes.Min();
+        GraphVertex t = m_Vertexes.Min()!;
         m_Vertexes.Remove(t);
         return t;
     }

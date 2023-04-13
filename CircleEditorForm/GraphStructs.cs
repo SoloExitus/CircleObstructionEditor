@@ -5,19 +5,21 @@ namespace GraphStruct
 {
     class CircleObstacle : Circle
     {
-        public List<int> m_ClockWiseVertexIndexes = new List<int>();
-        public List<int> m_CounterClockWiseVertexIndexes = new List<int>();
-        public List<int> m_IntersectCircleIndexes = new List<int>();
-        public List<PointFPair> m_Entersections = new List<PointFPair>();
+        public List<int> m_ClockWiseVertexIndexes = new ();
+        public List<int> m_CounterClockWiseVertexIndexes = new ();
+        public List<int> m_IntersectCircleIndexes = new ();
+        public List<PointFPair> m_Entersections = new ();
         public bool m_isEdgesGenerated = false;
         public bool m_isBlocked = false;
 
-        public CircleObstacle(PointF center)
+        public CircleObstacle(PointF center):
+            base(center)
         {
             m_center = center;
         }
 
-        public CircleObstacle(PointF center, float radius)
+        public CircleObstacle(PointF center, float radius):
+            base(center, radius)
         {
             m_center = center;
             m_radius = radius;

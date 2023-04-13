@@ -18,15 +18,8 @@ public static class BaseMath
         return MathF.Sqrt(sd);
     }
 
-    //public static T Clamp<T>(in T val, in T min, in T max) where T : IComparable<T>
-    //{
-    //    if (val.CompareTo(min) < 0) return min;
-    //    else if (val.CompareTo(max) > 0) return max;
-    //    else return val;
-    //}
-
     // Перевод радианы в градусы
-    public static float To_degre(in float rad)
+    public static float ToDegrees(in float rad)
     {
         return rad * 180 / MathF.PI;
     }

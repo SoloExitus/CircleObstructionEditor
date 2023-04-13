@@ -24,31 +24,20 @@ class Graph
 
     List<int> m_ShortesPathVertexIndexes = new List<int>();
 
-    //! Draw section
+    int m_ActorRadius = 0;
+
+    //! ----------------------------------- Start_Draw_Section ----------------------------------------
     SolidBrush m_startPointBrush = new SolidBrush(Color.Green);
     SolidBrush m_endPointBrush = new SolidBrush(Color.Red);
 
-    Pen m_DisplayPathPen = new Pen(Color.DarkRed, 2);
+    SolidBrush m_DebugObstructionsCentersBrush = new SolidBrush(Color.Brown);
+    SolidBrush m_DebugIntersectionsPointsBrush = new SolidBrush(Color.Coral);
+
+    Pen m_DisplayPathPen = new Pen(Color.DarkRed, 3);
 
     SolidBrush m_VertexBrush = new SolidBrush(Color.Blue);
     float m_VertexDispalayDiameter = 6;
-    //! End Draw section
-
-    public void Draw(ref Graphics g)
-    {
-        DrawStartAndEndPoints(ref g);
-
-        if (m_isDebugMode)
-        {
-            DrawGraph(ref g);
-            DrawIntersection(ref g);
-        }
-
-        if (m_isShortestPathFind)
-        {
-            DisplayPath(ref g);
-        }
-    }
+    //! ----------------------------------- End_Draw_Section ------------------------------------------
 
     public void SetStart(ref PointF start)
     {
@@ -67,7 +56,9 @@ class Graph
         Drop();
         foreach(Circle c in map)
         {
-            m_GraphObstructions.Add(new CircleObstacle(c));
+            CircleObstacle newCircleObstacle = new(c);
+            newCircleObstacle.m_radius += m_ActorRadius;
+            m_GraphObstructions.Add(newCircleObstacle);
         }
 
         for (int i = 0; i < m_GraphObstructions.Count; ++i)
@@ -88,6 +79,11 @@ class Graph
     public void SetDebug(bool debug)
     {
         m_isDebugMode = debug;
+    }
+
+    public void SetActorRadius(int radius)
+    {
+        m_ActorRadius = radius;
     }
 
     public void DropStartAndEnd()
@@ -121,7 +117,7 @@ class Graph
         m_isShortestPathFind = false;
         m_isStartAndEndGenerated = false;
 
-        foreach(CircleObstacle co in m_GraphObstructions)
+        foreach (CircleObstacle co in m_GraphObstructions)
         {
             co.m_isEdgesGenerated = false;
             co.m_ClockWiseVertexIndexes.Clear();
@@ -199,6 +195,34 @@ class Graph
         m_isFullGraphGenerated = true;
     }
 
+    public int GetEdgesCount()
+    {
+        return m_GraphEdges.Count;
+    }
+
+    public int GetVertexesCount()
+    {
+        return m_GraphVertexes.Count;
+    }
+
+    //! ------------------------------------------- Start_Draw_Section ------------------------------------------
+
+    public void Draw(ref Graphics g)
+    {
+        DrawStartAndEndPoints(ref g);
+
+        if (m_isDebugMode)
+        {
+            DrawGraph(ref g);
+            DrawIntersection(ref g);
+        }
+
+        if (m_isShortestPathFind)
+        {
+            DisplayPath(ref g);
+        }
+    }
+
     private void DisplayPath(ref Graphics g)
     {
         int currVertexIndex = 1;
@@ -211,7 +235,7 @@ class Graph
             int prevVertexIndex = currentVertex.m_parentVertexIndex;
             GraphVertex previousVertex = m_GraphVertexes[prevVertexIndex];
 
-            // Отрисовываем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
+            // Рисуем ребро между двумя вершинами, которое может быть ребром перехода или огибающем ребром
             if (currentVertex.m_obstacleIndex == previousVertex.m_obstacleIndex && prevVertexIndex != 0)
             {
                 CircleObstacle obs = m_GraphObstructions[currentVertex.m_obstacleIndex];
@@ -220,9 +244,6 @@ class Graph
 
                 PointF firstVector = new(previousVertex.m_position.X - center.X, previousVertex.m_position.Y - center.Y);
                 PointF secondVector = new(currentVertex.m_position.X - center.X, currentVertex.m_position.Y - center.Y);
-
-                //float startAngleRad = BaseMath.AngleBetweenVectors(ref OX, ref firstVector);
-                //float sweepAngleRad = BaseMath.AngleBetweenVectors(ref firstVector, ref secondVector);
 
                 float startAngleRad;
                 float sweepAngleRad;
@@ -237,8 +258,8 @@ class Graph
                     sweepAngleRad = BaseMath.CounterClockwiseAngleBetweenVectors(firstVector, secondVector);
                 }
 
-                float startAngle = BaseMath.To_degre(startAngleRad);
-                float sweepAngle = BaseMath.To_degre(sweepAngleRad);
+                float startAngle = BaseMath.ToDegrees(startAngleRad);
+                float sweepAngle = BaseMath.ToDegrees(sweepAngleRad);
 
                 g.DrawArc(m_DisplayPathPen,
                     center.X - radius, center.Y - radius,
@@ -290,18 +311,17 @@ class Graph
         {
             List<PointFPair> lpfp = obs.m_Entersections;
 
-            g.FillEllipse(new SolidBrush(Color.Red), obs.m_center.X - m_VertexDispalayDiameter / 8, obs.m_center.Y - m_VertexDispalayDiameter / 8, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+            g.FillEllipse(m_DebugObstructionsCentersBrush, obs.m_center.X - m_VertexDispalayDiameter / 2, obs.m_center.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
 
             foreach (PointFPair pfp in lpfp)
             {
-                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item1.X - m_VertexDispalayDiameter / 4, pfp.Item1.Y - m_VertexDispalayDiameter / 4, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-                g.FillEllipse(new SolidBrush(Color.Red), pfp.Item2.X - m_VertexDispalayDiameter / 4, pfp.Item2.Y - m_VertexDispalayDiameter / 4, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                g.FillEllipse(m_DebugIntersectionsPointsBrush, pfp.Item1.X - m_VertexDispalayDiameter / 2, pfp.Item1.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+                g.FillEllipse(m_DebugIntersectionsPointsBrush, pfp.Item2.X - m_VertexDispalayDiameter / 2, pfp.Item2.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
             }
 
         }
     }
-
-    //! Draw END
+    //! ------------------------------------------- End_Draw_Section ------------------------------------------
 
     public bool RunA()
     {

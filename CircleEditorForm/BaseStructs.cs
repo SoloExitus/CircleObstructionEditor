@@ -5,30 +5,17 @@
         public PointF m_center;
         public float m_radius = 0;
 
-        public Circle()
-        {
-            m_center = new PointF();
-        }
+        public Circle(Circle rhs):
+            this(rhs.m_center, rhs.m_radius)
+        {}
 
-        public Circle(Circle rhs)
-        {
-            m_center = rhs.m_center;
-            m_radius = rhs.m_radius;
-        }
-
-        public Circle(PointF center)
-        {
-            m_center = center;
-        }
+        public Circle(PointF center):
+            this(center, 0)
+        {}
 
         public Circle(PointF center, float radius)
         {
             m_center = center;
-            m_radius = radius;
-        }
-
-        public void SetRadius(float radius)
-        {
             m_radius = radius;
         }
 

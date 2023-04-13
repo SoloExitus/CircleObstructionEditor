@@ -33,7 +33,7 @@ class CircleEditor
     PointF m_startPoint;
     PointF m_endPoint;
 
-    List<Circle> m_Obstructions = new List<Circle>();
+    List<Circle> m_Obstructions = new ();
 
     bool m_isMapChanged = false;
 
@@ -86,6 +86,11 @@ class CircleEditor
         m_Graph.Clear();
     }
 
+    public void ClearGraph()
+    {
+        m_Graph.Clear();
+    }
+
     public bool AddObstruction(ref Circle obs)
     {
         foreach(Circle mapObs in m_Obstructions)
@@ -105,6 +110,22 @@ class CircleEditor
         m_Graph.SetDebug(isDebugMode);
     }
 
+    public int GetGraphEdgesCount()
+    {
+        return m_Graph.GetEdgesCount();
+    }
+
+    public int GetGraphVertexesCount()
+    {
+        return m_Graph.GetVertexesCount();
+    }
+
+    public void SetActorRadius(int radius)
+    {
+        m_Graph.SetActorRadius(radius);
+        m_isMapChanged = true;
+    }
+
     public void Load_from_file(string file_path)
     {
         XDocument xdoc = XDocument.Load(file_path);
@@ -112,6 +133,8 @@ class CircleEditor
         Clear();
 
         XElement? loadMap = xdoc.Element("map");
+
+        if (loadMap == null) return;
 
         XElement? start = loadMap.Element("start");
         XElement? end = loadMap.Element("end");
@@ -144,6 +167,8 @@ class CircleEditor
 
         XElement? obstructions = loadMap.Element("obstructions");
 
+        if (obstructions == null) return;
+
         foreach (XElement obstructionElement in obstructions.Elements("obstruction"))
         {
             XElement? centerPointElement = obstructionElement.Element("center");
@@ -172,20 +197,20 @@ class CircleEditor
 
     public void Save_to_file(string file_path)
     {
-        XElement map = new XElement("map");
-        XElement obstructions = new XElement("obstructions");
+        XElement map = new ("map");
+        XElement obstructions = new ("obstructions");
 
         foreach (Circle obstruct in m_Obstructions)
         {
-            XElement obstruction = new XElement("obstruction");
+            XElement obstruction = new ("obstruction");
 
-            XElement centerPointElement = new XElement("center");
-            XElement radiusElement = new XElement("radius");
+            XElement centerPointElement = new ("center");
+            XElement radiusElement = new ("radius");
 
-            XAttribute centerX = new XAttribute("x", obstruct.m_center.X.ToString());
-            XAttribute centerY = new XAttribute("y", obstruct.m_center.Y.ToString());
+            XAttribute centerX = new ("x", obstruct.m_center.X.ToString());
+            XAttribute centerY = new ("y", obstruct.m_center.Y.ToString());
 
-            XAttribute radius = new XAttribute("radius", obstruct.m_radius);
+            XAttribute radius = new ("radius", obstruct.m_radius);
 
             centerPointElement.Add(centerX);
             centerPointElement.Add(centerY);

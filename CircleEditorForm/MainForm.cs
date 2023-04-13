@@ -9,7 +9,7 @@ namespace CircleEditorForm
         Bitmap Image;
         bool m_isUpdate = false;
 
-        CircleEditor Editor = new CircleEditor();
+        CircleEditor m_Editor = new();
 
         public MainForm()
         {
@@ -46,7 +46,7 @@ namespace CircleEditorForm
         {
             if (m_isUpdate)
             {
-                Editor.Draw(ref G);
+                m_Editor.Draw(ref G);
                 Render();
                 m_isUpdate = false;
             }
@@ -54,37 +54,37 @@ namespace CircleEditorForm
 
         private void rb_RemoveMode_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.Remove;
+            m_Editor.Mode = CircleEditor.EditorMode.Remove;
         }
 
         private void rb_EditMode_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.Edit;
+            m_Editor.Mode = CircleEditor.EditorMode.Edit;
         }
 
         private void rb_NoneMode_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.None;
+            m_Editor.Mode = CircleEditor.EditorMode.None;
         }
 
         private void rb_CreateMode_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.Create;
+            m_Editor.Mode = CircleEditor.EditorMode.Create;
         }
 
         private void rb_SetStart_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.SetStart;
+            m_Editor.Mode = CircleEditor.EditorMode.SetStart;
         }
 
         private void rb_SetEnd_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.Mode = CircleEditor.EditorMode.SetEnd;
+            m_Editor.Mode = CircleEditor.EditorMode.SetEnd;
         }
 
         private void ModePoint_MouseMove(object sender, MouseEventArgs e)
         {
-            Editor.MouseMove(new PointF((float)e.Location.X, (float)e.Location.Y));
+            m_Editor.MouseMove(new PointF((float)e.Location.X, (float)e.Location.Y));
             l_MousePosition.Text = e.Location.ToString();
             m_isUpdate = true;
         }
@@ -93,18 +93,18 @@ namespace CircleEditorForm
         {
             if (e.Button == MouseButtons.Left)
             {
-                Editor.MouseDownLeft(new PointF((float)e.X, (float)e.Y));
+                m_Editor.MouseDownLeft(new PointF((float)e.X, (float)e.Y));
             }
             else if (e.Button == MouseButtons.Right)
             {
-                Editor.MouseDownRight(new PointF((float)e.Location.X, (float)e.Location.Y));
+                m_Editor.MouseDownRight(new PointF((float)e.Location.X, (float)e.Location.Y));
             }
             m_isUpdate = true;
         }
 
         private void btn_NewMap_Click(object sender, EventArgs e)
         {
-            Editor.Clear();
+            m_Editor.Clear();
             m_isUpdate = true;
         }
 
@@ -117,7 +117,7 @@ namespace CircleEditorForm
 
             string filename = saveMapFileDialog.FileName;
 
-            Editor.Save_to_file(filename);
+            m_Editor.Save_to_file(filename);
         }
 
         private void btn_LoadMap_Click(object sender, EventArgs e)
@@ -128,7 +128,7 @@ namespace CircleEditorForm
             }
 
             string filename = openMapFileDialog.FileName;
-            Editor.Load_from_file(filename);
+            m_Editor.Load_from_file(filename);
 
             m_isUpdate = true;
         }
@@ -153,10 +153,10 @@ namespace CircleEditorForm
 
                 Circle newObstruct = new Circle(new PointF(center_X, center_Y), radius);
 
-                if (Editor.AddObstruction(ref newObstruct))
+                if (m_Editor.AddObstruction(ref newObstruct))
                     count++;
 
-            } while(count < createNum);
+            } while (count < createNum);
 
             m_isUpdate = true;
         }
@@ -164,14 +164,14 @@ namespace CircleEditorForm
         private void btn_runA_Click(object sender, EventArgs e)
         {
             // Запускаем алгорим А* 
-            Editor.RunA();
+            m_Editor.RunA();
             m_isUpdate = true;
         }
 
         private void btn_GenerateFullGraph_Click(object sender, EventArgs e)
         {
             // Сгенерировать весь граф целиком
-            Editor.GenerateFullGraph();
+            m_Editor.GenerateFullGraph();
             m_isUpdate = true;
         }
 
@@ -186,41 +186,51 @@ namespace CircleEditorForm
 
         private void cb_DebugView_CheckedChanged(object sender, EventArgs e)
         {
-            Editor.SetDebugMode(cb_DebugView.Checked);
+            m_Editor.SetDebugMode(cb_DebugView.Checked);
+            m_isUpdate = true;
+        }
+
+        private void nud_ActorRadius_ValueChanged(object sender, EventArgs e)
+        {
+            m_Editor.SetActorRadius((int)nud_ActorRadius.Value);
             m_isUpdate = true;
         }
 
         private void btn_GenerateFullGraphBenchmark_Click(object sender, EventArgs e)
         {
             Stopwatch sw = new Stopwatch();
-            int count = 5;
+            int count = 1;
             sw.Start();
             for (int i = 0; i < count; ++i)
             {
-                Editor.GenerateFullGraph();
-                Editor.RunA();
-                Editor.ResetMap();
+                m_Editor.ClearGraph();
+                m_Editor.GenerateFullGraph();
+                m_Editor.RunA();
             }
             sw.Stop();
             double res = sw.ElapsedMilliseconds / count;
 
-            MessageBox.Show($"Full graph generate time: {res}", "Full graph benchmark");
+            MessageBox.Show($"Full graph generate time: {res}\n" +
+                $"Edges Count: {m_Editor.GetGraphEdgesCount()}\n" +
+                $"Vertex Count: {m_Editor.GetGraphVertexesCount()}.", "Full graph benchmark");
         }
 
         private void btn_RunABenchmark_Click(object sender, EventArgs e)
         {
             Stopwatch sw = new Stopwatch();
-            int count = 5;
+            int count = 1;
             sw.Start();
             for (int i = 0; i < count; ++i)
             {
-                Editor.RunA();
-                Editor.ResetMap();
+                m_Editor.ClearGraph();
+                m_Editor.RunA();
             }
             sw.Stop();
             double res = sw.ElapsedMilliseconds / count;
 
-            MessageBox.Show($"Step by step graph generate time: {res}", "A* benchmark");
+            MessageBox.Show($"Step by step graph generate time: {res} \n" +
+                $"Edges Count: {m_Editor.GetGraphEdgesCount()}\n" +
+                $"Vertex Count: {m_Editor.GetGraphVertexesCount()}.", "A* benchmark");
         }
     }
 
