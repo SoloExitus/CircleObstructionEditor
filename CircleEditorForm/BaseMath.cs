@@ -77,6 +77,22 @@ public static class BaseMath
         return CounterClockwiseAngleBetweenVectors(in firstVec, in secondVec);
     }
 
+    public static float AngleBetweenPointsOnCircle(in Circle c, in PointF first, in PointF second)
+    {
+        PointF center = c.m_center;
+        PointF firstVec = new(
+            first.X - center.X,
+            first.Y - center.Y
+            );
+
+        PointF secondVec = new(
+            second.X - center.X,
+            second.Y - center.Y
+            );
+
+        return AngleBetweenVectors(in firstVec, in secondVec);
+    }
+
     public static float CircleArcLenght(in float radius, in float angle)
     {
         float angleAbs = MathF.Abs(angle);

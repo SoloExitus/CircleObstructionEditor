@@ -5,10 +5,9 @@ namespace GraphStruct
 {
     class CircleObstacle : Circle
     {
-        public List<int> m_ClockWiseVertexIndexes = new ();
-        public List<int> m_CounterClockWiseVertexIndexes = new ();
+        public List<int> m_VertexIndexes = new();
         public List<int> m_IntersectCircleIndexes = new ();
-        public List<PointFPair> m_Entersections = new ();
+        public List<PointFPair> m_Intersections = new ();
         public bool m_isEdgesGenerated = false;
         public bool m_isBlocked = false;
 
@@ -41,26 +40,21 @@ namespace GraphStruct
         public float m_H = -1;
         public float m_F = -1;
 
-        // направление 1 - по часовой 
-        // направление -1 - против, а 0 не определено
-        public int m_direction = 0;
-
         public int CompareTo(GraphVertex? other)
         {
             if (other == null) return 1;
             return m_F.CompareTo(other.m_F);
         }
 
-        public GraphVertex(PointF point, int obstacleIndex, int direction, PointF endPoint)
+        public GraphVertex(PointF point, int obstacleIndex, PointF endPoint)
         {
             m_position = point;
             m_obstacleIndex = obstacleIndex;
             m_H = BaseMath.Distance(in m_position, in endPoint);
-            m_direction = direction;
         }
 
-        public GraphVertex(float x, float y, int obstacleIndex, int direction, PointF endPoint) :
-            this(new PointF(x, y), obstacleIndex, direction, endPoint)
+        public GraphVertex(float x, float y, int obstacleIndex, PointF endPoint) :
+            this(new PointF(x, y), obstacleIndex, endPoint)
         {
         }
 
