@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<map>
+  <start x="272" y="531" />
+  <end x="1485" y="469" />
+  <obstructions>
+    <obstruction>
+      <center x="1064" y="626" />
+      <radius radius="224.50166" />
+    </obstruction>
+    <obstruction>
+      <center x="855" y="200" />
+      <radius radius="163.68567" />
+    </obstruction>
+    <obstruction>
+      <center x="1321" y="161" />
+      <radius radius="204.00246" />
+    </obstruction>
+    <obstruction>
+      <center x="649" y="456" />
+      <radius radius="104.23531" />
+    </obstruction>
+    <obstruction>
+      <center x="680" y="691" />
+      <radius radius="95.2103" />
+    </obstruction>
+  </obstructions>
+</map>

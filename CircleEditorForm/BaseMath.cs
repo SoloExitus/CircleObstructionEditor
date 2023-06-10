@@ -204,7 +204,7 @@ public static class BaseMath
 
     public static List<Edge> InternalBitangents(PointF centerA, float rA, PointF centerB, float rB)
     {
-        float Q = (float)Math.Acos((double)(rA + rB) / Distance(in centerA, in centerB));
+        float Q = MathF.Acos((rA + rB) / Distance(in centerA, in centerB));
 
         float vectABX = centerB.X - centerA.X;
         float vectABY = centerB.Y - centerA.Y;
@@ -251,7 +251,7 @@ public static class BaseMath
 
         float u = ((C.X - A.X) * (B.X - A.X) + (C.Y - A.Y) * (B.Y - A.Y)) / Square_distance(in B, in A);
 
-        float clamp_u = Math.Clamp(u , 0, 1);
+        float clamp_u = Math.Clamp(u, 0, 1);
 
         float Ex = A.X + clamp_u * (B.X - A.X);
         float Ey = A.Y + clamp_u * (B.Y - A.Y);

@@ -42,7 +42,7 @@ class CircleEditor
 
     Graph m_Graph = new ();
 
-    Pen m_obstructionsPen = new Pen(Color.DeepSkyBlue, 2);
+    Pen m_obstructionsPen = new Pen(Color.DeepSkyBlue, 3);
 
     public CircleEditor() { }
 
@@ -105,9 +105,19 @@ class CircleEditor
         return true;
     }
 
-    public void SetDebugMode(bool isDebugMode)
+    public void DrawFullGraph(bool draw)
     {
-        m_Graph.SetDebug(isDebugMode);
+        m_Graph.DrawFullGraph(draw);
+    }
+
+    public void DrawTrueObstacles(bool draw)
+    {
+        m_Graph.DrawTrueObstacles(draw);
+    }
+
+    public void DrawIntersectionPoints(bool draw)
+    {
+        m_Graph.DrawIntersectionPoints(draw);
     }
 
     public int GetGraphEdgesCount()
@@ -269,10 +279,10 @@ class CircleEditor
             m_Graph.SetMap(m_Obstructions);
             m_isMapChanged = false;
         }
-        else
-        {
-            m_Graph.Clear();
-        }
+        //else
+        //{
+        //    m_Graph.Clear();
+        //}
     }
 
     private void DrawObstructions(ref Graphics g)

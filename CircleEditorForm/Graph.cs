@@ -25,7 +25,10 @@ class Graph
     bool m_isShortestPathFind = false;
     bool m_isStartAndEndGenerated = false;
 
-    bool m_isDebugMode = false;
+    // Debug Flags
+    bool m_isDrawFullGraph = false;
+    bool m_isDrawTrueObstacles = false;
+    bool m_isDrawIntersectionPoints = false;
 
     List<int> m_ShortesPathVertexIndexes = new List<int>();
 
@@ -38,11 +41,15 @@ class Graph
     SolidBrush m_DebugObstructionsCentersBrush = new SolidBrush(Color.Brown);
     SolidBrush m_DebugIntersectionsPointsBrush = new SolidBrush(Color.Coral);
 
-    Pen m_DisplayPathPen = new Pen(Color.DarkRed, 3);
+    Pen m_DisplayPathPen = new Pen(Color.DarkRed, 4);
 
-    Pen m_OstructionsPen = new Pen(Color.Blue, 2);
+    Pen m_OstructionsPen = new Pen(Color.Blue, 4);
 
-    SolidBrush m_VertexBrush = new SolidBrush(Color.Blue);
+    Pen m_EdgesPen = new Pen(Color.Gray, 3);
+
+    SolidBrush m_AllVertexBrush = new SolidBrush(Color.Gray);
+
+    SolidBrush m_PathVertexBrush = new SolidBrush(Color.Blue);
     float m_VertexDispalayDiameter = 6;
     //! ----------------------------------- End_Draw_Section ------------------------------------------
 
@@ -83,9 +90,19 @@ class Graph
         }
     }
 
-    public void SetDebug(bool debug)
+    public void DrawFullGraph(bool draw)
     {
-        m_isDebugMode = debug;
+        m_isDrawFullGraph = draw;
+    }
+
+    public void DrawTrueObstacles(bool draw)
+    {
+        m_isDrawTrueObstacles = draw;
+    }
+
+    public void DrawIntersectionPoints(bool draw)
+    {
+        m_isDrawIntersectionPoints = draw;
     }
 
     public void SetActorRadius(int radius)
@@ -217,10 +234,18 @@ class Graph
     {
         DrawStartAndEndPoints(ref g);
 
-        if (m_isDebugMode)
+        if (m_isDrawTrueObstacles)
         {
             DrawObstructions(ref g);
+        }
+
+        if (m_isDrawFullGraph)
+        {
             DrawGraph(ref g);
+        }
+
+        if (m_isDrawIntersectionPoints)
+        {
             DrawIntersection(ref g);
         }
 
@@ -261,18 +286,21 @@ class Graph
                 float startAngle = BaseMath.ToDegrees(startAngleRad);
                 float sweepAngle = BaseMath.ToDegrees(sweepAngleRad);
 
-                g.DrawArc(m_DisplayPathPen,
+                if ( MathF.Abs(sweepAngle) > 1.0)
+                {
+                    g.DrawArc(m_DisplayPathPen,
                     center.X - radius, center.Y - radius,
                     radius * 2, radius * 2,
                     startAngle, sweepAngle
                     );
+                }
             }
             else
             {
                 g.DrawLine(m_DisplayPathPen, previousVertex.m_position, currentVertex.m_position);
-                g.FillEllipse(m_VertexBrush, currentVertex.m_position.X - 3, currentVertex.m_position.Y - m_VertexDispalayDiameter / 2,
+                g.FillEllipse(m_PathVertexBrush, currentVertex.m_position.X - 3, currentVertex.m_position.Y - m_VertexDispalayDiameter / 2,
                     m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-                g.FillEllipse(m_VertexBrush, previousVertex.m_position.X - 3, previousVertex.m_position.Y - m_VertexDispalayDiameter / 2,
+                g.FillEllipse(m_PathVertexBrush, previousVertex.m_position.X - 3, previousVertex.m_position.Y - m_VertexDispalayDiameter / 2,
                     m_VertexDispalayDiameter, m_VertexDispalayDiameter);
             }
 
@@ -295,13 +323,15 @@ class Graph
     {
         foreach (GraphEdge edge in m_GraphEdges)
         {
-            if (m_GraphVertexes[edge.m_firstVertexIndex].m_obstacleIndex == m_GraphVertexes[edge.m_secondVertexIndex].m_obstacleIndex)
+            int firstObstacleIndex = m_GraphVertexes[edge.m_firstVertexIndex].m_obstacleIndex;
+            int secondObstacleIndex = m_GraphVertexes[edge.m_secondVertexIndex].m_obstacleIndex;
+            if (firstObstacleIndex == secondObstacleIndex && firstObstacleIndex != -1)
                 continue;
 
-            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
-            g.FillEllipse(new SolidBrush(Color.Gray), m_GraphVertexes[edge.m_secondVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_secondVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+            g.FillEllipse(m_AllVertexBrush, m_GraphVertexes[edge.m_firstVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_firstVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
+            g.FillEllipse(m_AllVertexBrush, m_GraphVertexes[edge.m_secondVertexIndex].m_position.X - m_VertexDispalayDiameter / 2, m_GraphVertexes[edge.m_secondVertexIndex].m_position.Y - m_VertexDispalayDiameter / 2, m_VertexDispalayDiameter, m_VertexDispalayDiameter);
 
-            g.DrawLine(new Pen(Color.Gray, 2), m_GraphVertexes[edge.m_firstVertexIndex].m_position, m_GraphVertexes[edge.m_secondVertexIndex].m_position);
+            g.DrawLine(m_EdgesPen, m_GraphVertexes[edge.m_firstVertexIndex].m_position, m_GraphVertexes[edge.m_secondVertexIndex].m_position);
         }
     }
 

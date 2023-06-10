@@ -184,12 +184,6 @@ namespace CircleEditorForm
             m_isUpdate = true;
         }
 
-        private void cb_DebugView_CheckedChanged(object sender, EventArgs e)
-        {
-            m_Editor.SetDebugMode(cb_DebugView.Checked);
-            m_isUpdate = true;
-        }
-
         private void nud_ActorRadius_ValueChanged(object sender, EventArgs e)
         {
             m_Editor.SetActorRadius((int)nud_ActorRadius.Value);
@@ -231,6 +225,24 @@ namespace CircleEditorForm
             MessageBox.Show($"Step by step graph generate time: {res} \n" +
                 $"Edges Count: {m_Editor.GetGraphEdgesCount()}\n" +
                 $"Vertex Count: {m_Editor.GetGraphVertexesCount()}.", "A* benchmark");
+        }
+
+        private void cb_FullGraph_CheckedChanged(object sender, EventArgs e)
+        {
+            m_Editor.DrawFullGraph(cb_FullGraph.Checked);
+            m_isUpdate = true;
+        }
+
+        private void cb_TrueObstacles_CheckedChanged(object sender, EventArgs e)
+        {
+            m_Editor.DrawTrueObstacles(cb_TrueObstacles.Checked);
+            m_isUpdate = true;
+        }
+
+        private void cb_Points_CheckedChanged(object sender, EventArgs e)
+        {
+            m_Editor.DrawIntersectionPoints(cb_Points.Checked);
+            m_isUpdate = true;
         }
     }
 

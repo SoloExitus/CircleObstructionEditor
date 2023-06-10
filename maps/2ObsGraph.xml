@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<map>
+  <obstructions>
+    <obstruction>
+      <center x="492" y="491" />
+      <radius radius="427.5196" />
+    </obstruction>
+    <obstruction>
+      <center x="1288" y="478" />
+      <radius radius="248.26196" />
+    </obstruction>
+  </obstructions>
+</map>

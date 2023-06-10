@@ -35,9 +35,11 @@
             pb_ViewPort = new PictureBox();
             gb_Control = new GroupBox();
             gb_Debug = new GroupBox();
+            cb_Points = new CheckBox();
+            cb_TrueObstacles = new CheckBox();
+            cb_FullGraph = new CheckBox();
             ll_MousePosition = new Label();
             l_MousePosition = new Label();
-            cb_DebugView = new CheckBox();
             gb_Actor = new GroupBox();
             nud_ActorRadius = new NumericUpDown();
             l_ActorRadius = new Label();
@@ -106,27 +108,62 @@
             gb_Control.Controls.Add(gb_MapControl);
             gb_Control.Location = new Point(539, 0);
             gb_Control.Name = "gb_Control";
-            gb_Control.Size = new Size(163, 553);
+            gb_Control.Size = new Size(163, 639);
             gb_Control.TabIndex = 1;
             gb_Control.TabStop = false;
             gb_Control.Text = "Control";
             // 
             // gb_Debug
             // 
+            gb_Debug.Controls.Add(cb_Points);
+            gb_Debug.Controls.Add(cb_TrueObstacles);
+            gb_Debug.Controls.Add(cb_FullGraph);
             gb_Debug.Controls.Add(ll_MousePosition);
             gb_Debug.Controls.Add(l_MousePosition);
-            gb_Debug.Controls.Add(cb_DebugView);
             gb_Debug.Location = new Point(7, 370);
             gb_Debug.Name = "gb_Debug";
-            gb_Debug.Size = new Size(149, 97);
+            gb_Debug.Size = new Size(149, 154);
             gb_Debug.TabIndex = 4;
             gb_Debug.TabStop = false;
             gb_Debug.Text = "Debug";
             // 
+            // cb_Points
+            // 
+            cb_Points.AutoSize = true;
+            cb_Points.Location = new Point(11, 72);
+            cb_Points.Name = "cb_Points";
+            cb_Points.Size = new Size(59, 19);
+            cb_Points.TabIndex = 7;
+            cb_Points.Text = "Points";
+            cb_Points.UseVisualStyleBackColor = true;
+            cb_Points.CheckedChanged += cb_Points_CheckedChanged;
+            // 
+            // cb_TrueObstacles
+            // 
+            cb_TrueObstacles.AutoSize = true;
+            cb_TrueObstacles.Location = new Point(11, 47);
+            cb_TrueObstacles.Name = "cb_TrueObstacles";
+            cb_TrueObstacles.Size = new Size(99, 19);
+            cb_TrueObstacles.TabIndex = 6;
+            cb_TrueObstacles.Text = "TruеObstacles";
+            cb_TrueObstacles.UseVisualStyleBackColor = true;
+            cb_TrueObstacles.CheckedChanged += cb_TrueObstacles_CheckedChanged;
+            // 
+            // cb_FullGraph
+            // 
+            cb_FullGraph.AutoSize = true;
+            cb_FullGraph.Location = new Point(11, 22);
+            cb_FullGraph.Name = "cb_FullGraph";
+            cb_FullGraph.Size = new Size(77, 19);
+            cb_FullGraph.TabIndex = 5;
+            cb_FullGraph.Text = "FullGraph";
+            cb_FullGraph.UseVisualStyleBackColor = true;
+            cb_FullGraph.CheckedChanged += cb_FullGraph_CheckedChanged;
+            // 
             // ll_MousePosition
             // 
             ll_MousePosition.AutoSize = true;
-            ll_MousePosition.Location = new Point(11, 44);
+            ll_MousePosition.Location = new Point(11, 99);
             ll_MousePosition.Name = "ll_MousePosition";
             ll_MousePosition.Size = new Size(86, 15);
             ll_MousePosition.TabIndex = 4;
@@ -136,28 +173,17 @@
             // 
             l_MousePosition.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             l_MousePosition.AutoSize = true;
-            l_MousePosition.Location = new Point(11, 69);
+            l_MousePosition.Location = new Point(11, 123);
             l_MousePosition.Name = "l_MousePosition";
             l_MousePosition.Size = new Size(86, 15);
             l_MousePosition.TabIndex = 2;
             l_MousePosition.Text = "MousePosition";
             // 
-            // cb_DebugView
-            // 
-            cb_DebugView.AutoSize = true;
-            cb_DebugView.Location = new Point(11, 22);
-            cb_DebugView.Name = "cb_DebugView";
-            cb_DebugView.Size = new Size(86, 19);
-            cb_DebugView.TabIndex = 0;
-            cb_DebugView.Text = "DebugView";
-            cb_DebugView.UseVisualStyleBackColor = true;
-            cb_DebugView.CheckedChanged += cb_DebugView_CheckedChanged;
-            // 
             // gb_Actor
             // 
             gb_Actor.Controls.Add(nud_ActorRadius);
             gb_Actor.Controls.Add(l_ActorRadius);
-            gb_Actor.Location = new Point(7, 473);
+            gb_Actor.Location = new Point(7, 530);
             gb_Actor.Name = "gb_Actor";
             gb_Actor.Size = new Size(150, 73);
             gb_Actor.TabIndex = 2;
@@ -435,7 +461,6 @@
         private Button btn_GenerateFullGraphBenchmark;
         private Button btn_RunABenchmark;
         private Button btn_GenerateFullGraph;
-        private CheckBox cb_DebugView;
         private RadioButton rb_SetEndMode;
         private RadioButton rb_SetStartMode;
         private RadioButton rb_EditMode;
@@ -456,5 +481,8 @@
         private GroupBox gb_Actor;
         private Label l_ActorRadius;
         private NumericUpDown nud_ActorRadius;
+        private CheckBox cb_Points;
+        private CheckBox cb_TrueObstacles;
+        private CheckBox cb_FullGraph;
     }
 }
